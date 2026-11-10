@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, Boxes, Cog, Gauge, Hand, Headphones, PackageCheck, Quote, Ribbon, ShieldCheck, Thermometer, Timer, Truck, Wrench, Zap } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Boxes, Cog, Gauge, Gift, Hand, Headphones, PackageCheck, Quote, Ribbon, ShieldCheck, Thermometer, Timer, Truck, Wrench, Zap } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { ErrorState, SkeletonCard } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
@@ -12,6 +12,7 @@ const CATEGORY_ICONS: Record<CategoryId, typeof Cog> = {
   'band-sealers': Boxes,
   accessories: Ribbon,
   'spare-parts': Wrench,
+  'home-decor-gifts': Gift,
 }
 
 const BENEFITS = [
@@ -42,14 +43,14 @@ export default function HomePage() {
           <div className="animate-fade-up">
             <p className="eyebrow">Poly sealing machines &amp; packaging equipment</p>
             <h1 className="mt-4 text-4xl leading-[1.08] font-extrabold sm:text-5xl lg:text-[3.6rem]">
-              Professional Packaging Solutions for <span className="relative whitespace-nowrap text-navy-700">Every Business</span>
+              Reliable <span className="relative whitespace-nowrap text-navy-700">Business Tools</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600">
               From a single sweet shop counter to a full packing line, VIENTo sealers give you clean, airtight seals in seconds, with adjustable heat, genuine spares and a one-year guarantee.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link to="/products" className="btn btn-primary btn-lg group">
-                Shop Now <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden />
+              <Link to="/collections/power-tools" className="btn btn-primary btn-lg group">
+                Explore <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden />
               </Link>
               <Link to="/products?category=spare-parts" className="btn btn-outline btn-lg">
                 Spare parts
@@ -105,7 +106,7 @@ export default function HomePage() {
             View all products <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map((c) => {
             const Icon = CATEGORY_ICONS[c.id]
             const count = products.filter((p) => p.categoryId === c.id).length

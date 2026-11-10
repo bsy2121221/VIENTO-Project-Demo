@@ -4,7 +4,8 @@ import type { Order, Product } from '@/types'
 import { SEED_PRODUCTS, createSeedOrders } from '@/data/seed'
 
 const KEYS = {
-  products: 'viento.demo.v1.products',
+  // Bumped to v3 when the Home Décor & Gifts range got real product photos, so existing browsers pick up the new catalogue.
+  products: 'viento.demo.v3.products',
   orders: 'viento.demo.v1.orders',
 } as const
 

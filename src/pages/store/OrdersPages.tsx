@@ -4,6 +4,7 @@ import { ArrowRight, CalendarClock, FileSearch, MapPin, PackageSearch, Receipt, 
 import OrderTimeline from '@/components/product/OrderTimeline'
 import { Breadcrumbs, DemoNotice, EmptyState, ErrorState, Field, OrderStatusBadge, PageLoader, PaymentBadge, ProductImage, Spinner } from '@/components/ui'
 import { useStore } from '@/context/StoreContext'
+import { useCustomerAuth } from '@/context/CustomerAuthContext'
 import { orderService } from '@/services/orderService'
 import { PAYMENT_METHOD_LABELS } from '@/data/seed'
 import type { Order } from '@/types'
@@ -86,13 +87,15 @@ export function TrackOrderPage() {
 /* ---------- My Orders ---------- */
 export function MyOrdersPage() {
   const { orders, myOrderNumbers, loading, error, reload } = useStore()
-  const mine = orders.filter((o) => myOrderNumbers.includes(o.orderNumber))
+  const { user } = useCustomerAuth()
+  const email = user?.email.toLowerCase()
+  const mine = orders.filter((o) => o.customer.email.toLowerCase() === email || myOrderNumbers.includes(o.orderNumber))
 
   return (
     <div className="container-page py-8">
       <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'My Orders' }]} />
       <h1 className="mt-4 text-3xl font-extrabold">My orders</h1>
-      <p className="mt-1 text-slate-600">Demo orders placed from this browser.</p>
+      <p className="mt-1 text-slate-600">{user ? <>Signed in as <span className="font-semibold text-navy-900">{user.email}</span>. Orders placed with this email or from this browser appear here.</> : 'Demo orders placed from this browser.'}</p>
 
       <div className="mt-8">
         {error ? (
@@ -182,8 +185,10 @@ function OrderListCard({ order }: { order: Order }) {
 export function OrderTrackingPage() {
   const { orderNumber = '' } = useParams()
   const { orders, myOrderNumbers, loading, error, reload } = useStore()
+  const { user } = useCustomerAuth()
   const order = orders.find((o) => o.orderNumber === orderNumber)
-  const allowed = myOrderNumbers.includes(orderNumber) || readVerified().includes(orderNumber)
+  const ownsOrder = !!user && order?.customer.email.toLowerCase() === user.email.toLowerCase()
+  const allowed = ownsOrder || myOrderNumbers.includes(orderNumber) || readVerified().includes(orderNumber)
 
   if (error) return <ErrorState message={error} onRetry={reload} />
   if (loading) return <PageLoader label="Fetching tracking details…" />

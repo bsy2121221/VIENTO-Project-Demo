@@ -1,18 +1,20 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Feather, ImageOff, Loader2, Minus, Plus, X } from 'lucide-react'
+import { AlertTriangle, ImageOff, Loader2, Minus, Plus, X } from 'lucide-react'
 import type { OrderStatus, PaymentStatus, Product } from '@/types'
 import { cn } from '@/lib/format'
 
 /* ---------- Brand ---------- */
 export function Logo({ light = false, className }: { light?: boolean; className?: string }) {
   return (
-    <Link to="/" className={cn('group inline-flex items-center rounded-md', className)} aria-label="VIENTo home">
-      <span className={cn('font-display text-2xl font-extrabold tracking-[0.06em]', light ? 'text-gold-300' : 'text-gold-500')}>VIENT</span>
-      <span className="relative -ml-0.5 inline-flex h-7 w-7 items-center justify-center">
-        <span className={cn('absolute inset-0 rounded-full border-[3px]', light ? 'border-gold-300' : 'border-gold-500')} />
-        <Feather className={cn('relative h-4 w-4 -rotate-12 transition-transform duration-300 group-hover:rotate-6', light ? 'text-gold-300' : 'text-gold-500')} strokeWidth={2.5} aria-hidden />
-      </span>
+    <Link to="/" className={cn('group inline-flex shrink-0 items-center rounded-md', className)} aria-label="VIENTo home">
+      <img
+        src="/images/logo.png"
+        alt="VIENTo"
+        width={652}
+        height={175}
+        className={cn('h-8 w-auto transition-opacity group-hover:opacity-85 lg:h-9', light && 'brightness-110')}
+      />
     </Link>
   )
 }

@@ -5,6 +5,7 @@ import { Breadcrumbs, DemoNotice, EmptyState, Field, PageLoader, ProductImage, S
 import { useCart } from '@/context/CartContext'
 import { useStore } from '@/context/StoreContext'
 import { useToast } from '@/context/ToastContext'
+import { useCustomerAuth } from '@/context/CustomerAuthContext'
 import { OrderSummary } from './CartPage'
 import type { PaymentMethod, ShippingAddress } from '@/types'
 import { cn, formatPrice } from '@/lib/format'
@@ -43,7 +44,8 @@ export default function CheckoutPage() {
   const { placeOrder, loading } = useStore()
   const toast = useToast()
   const navigate = useNavigate()
-  const [form, setForm] = useState<FormState>(EMPTY)
+  const { user } = useCustomerAuth()
+  const [form, setForm] = useState<FormState>(() => (user ? { ...EMPTY, fullName: user.name, email: user.email, phone: user.phone } : EMPTY))
   const [errors, setErrors] = useState<Errors>({})
   const [touched, setTouched] = useState(false)
   const [payment, setPayment] = useState<PaymentMethod>('demo-card')

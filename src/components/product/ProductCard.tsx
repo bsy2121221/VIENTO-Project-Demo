@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingCart } from 'lucide-react'
+import { ArrowRight, ShoppingCart } from 'lucide-react'
 import type { Product } from '@/types'
 import { CATEGORIES } from '@/data/seed'
 import { formatPrice } from '@/lib/format'
@@ -18,7 +18,8 @@ export function useAddToCart() {
   }
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+/** `showShopNow` adds a full-width "Shop Now" link to the product page below the price row. */
+export default function ProductCard({ product, showShopNow = false }: { product: Product; showShopNow?: boolean }) {
   const addToCart = useAddToCart()
   const category = CATEGORIES.find((c) => c.id === product.categoryId)
   const out = product.stock <= 0
@@ -54,6 +55,11 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="hidden sm:inline">Add</span>
           </button>
         </div>
+        {showShopNow && (
+          <Link to={`/products/${product.slug}`} className="btn btn-primary group/shop mt-4 w-full" aria-label={`Shop now: ${product.name}`}>
+            Shop Now <ArrowRight className="h-4 w-4 transition group-hover/shop:translate-x-1" aria-hidden />
+          </Link>
+        )}
       </div>
     </article>
   )
