@@ -5,39 +5,21 @@ import { addDays, calcShipping } from '@/lib/format'
 const IMG = '/images/products'
 const REPRESENTATIVE = 'Representative image. Final photography for this model is pending.'
 
+/** The three ranges VIENTo sells. Each category is also a department (collection page, Explore menu, homepage tile). */
 export const CATEGORIES: Category[] = [
-  { id: 'hand-sealers', name: 'Hand Sealers', description: 'Countertop poly sealers for shops, kitchens and small packing lines.' },
-  { id: 'impulse-sealers', name: 'Impulse Sealers', description: 'Heavy-gauge impulse sealing for thicker films and longer seams.' },
-  { id: 'band-sealers', name: 'Band Sealers', description: 'Continuous sealing for high-volume production and packing units.' },
-  { id: 'accessories', name: 'Accessories', description: 'Teflon cloth, sealing tape and maintenance kits.' },
-  { id: 'spare-parts', name: 'Spare Parts', description: 'Genuine heating elements and replacement components.' },
-  { id: 'home-decor-gifts', name: 'Home Décor & Gifts', description: 'Hand-beaded cushions, placemats and table runners for homes and festive gifting.' },
-  { id: 'kitchen-essentials', name: 'Kitchen Essentials', description: 'Everyday kitchenware and storage for modern Indian homes.' },
+  { id: 'home-decor-gifts', name: 'Home Decoration', description: 'Hand-beaded cushion covers, placemats and table runners that bring warmth and festive sparkle to every room.' },
+  { id: 'power-tools', name: 'Power Tools', description: 'Sealing machines, air blowers, genuine spare parts and accessories for homes, shops and workshops.' },
+  { id: 'home-kitchen', name: 'Home & Kitchen', description: 'Handcrafted dinnerware and everyday kitchen essentials for modern Indian homes.' },
 ]
 
+const DEPARTMENT_IMAGES: Partial<Record<Category['id'], string>> = {
+  'home-decor-gifts': `${IMG}/decor-runner-gold-circles.jpeg`,
+  'power-tools': `${IMG}/sealer-blue-studio.jpeg`,
+  'home-kitchen': `${IMG}/kitchen-thali-set.jpeg`,
+}
+
 /** Display order here is the order used on the homepage and in the Explore menu. */
-export const DEPARTMENTS: Department[] = [
-  {
-    id: 'home-decor-gifts',
-    name: 'Home Decoration',
-    description: 'Hand-beaded cushion covers, placemats and table runners that bring warmth and festive sparkle to every room.',
-    categoryIds: ['home-decor-gifts'],
-    image: `${IMG}/decor-runner-gold-circles.jpeg`,
-  },
-  {
-    id: 'power-tools',
-    name: 'Power Tools',
-    description: 'Electric sealing machines, genuine spare parts and accessories for shops, kitchens and packing lines.',
-    categoryIds: ['hand-sealers', 'impulse-sealers', 'band-sealers', 'accessories', 'spare-parts'],
-    image: `${IMG}/sealer-blue-studio.jpeg`,
-  },
-  {
-    id: 'home-kitchen',
-    name: 'Home & Kitchen',
-    description: 'Practical kitchenware, storage and everyday essentials for modern homes.',
-    categoryIds: ['kitchen-essentials'],
-  },
-]
+export const DEPARTMENTS: Department[] = CATEGORIES.map((c) => ({ ...c, categoryIds: [c.id], image: DEPARTMENT_IMAGES[c.id] }))
 
 const ts = '2026-10-01T09:00:00.000Z'
 
@@ -46,7 +28,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1001',
     slug: 'viento-poly-sealing-machine-12-orange',
     name: 'VIENTo Poly Sealing Machine 12" (Orange)',
-    categoryId: 'hand-sealers',
+    categoryId: 'power-tools',
     shortDescription: 'Countertop hand sealer with 8-level temperature control and a 12-inch seal.',
     description:
       'The VIENTo Poly Sealing Machine is built for everyday packing in retail counters, sweet shops, bakeries and home businesses. Its electronic circuit control heats instantly, so there is no warm-up time, and the timer knob lets you match heat to film thickness for a clean, airtight seal every time. The powder-coated metal body sits firmly on the bench while the lever arm closes with a light press.',
@@ -76,7 +58,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1002',
     slug: 'viento-poly-sealing-machine-12-royal-blue',
     name: 'VIENTo Poly Sealing Machine 12" (Royal Blue)',
-    categoryId: 'hand-sealers',
+    categoryId: 'power-tools',
     shortDescription: 'The same trusted 12-inch hand sealer in a royal blue finish.',
     description:
       'Our best-selling 12-inch hand sealer in a royal blue finish. It seals polythene, PP and laminated pouches for snacks, spices, dry fruits, stationery and hardware. Electronic heat control and an audible cycle indicator make it easy for new staff to get a smooth, consistent seal from the first day.',
@@ -106,7 +88,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1003',
     slug: 'viento-heavy-duty-impulse-sealer-16',
     name: 'VIENTo Heavy Duty Impulse Sealer 16"',
-    categoryId: 'impulse-sealers',
+    categoryId: 'power-tools',
     shortDescription: 'Longer 16-inch seal and wider 5 mm seam for thick and laminated bags.',
     description:
       'Designed for grocery wholesalers, rice and pulse packers and hardware suppliers, the Heavy Duty Impulse Sealer delivers a 5 mm wide seam across 16 inches. The reinforced arm and higher-wattage element handle thicker laminated films without wrinkling, and the impulse design only draws power during the sealing cycle.',
@@ -136,7 +118,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1004',
     slug: 'viento-continuous-band-sealer-fr900',
     name: 'VIENTo Continuous Band Sealer FR-900',
-    categoryId: 'band-sealers',
+    categoryId: 'power-tools',
     shortDescription: 'Conveyor band sealer with digital temperature control and batch coding.',
     description:
       'The FR-900 continuous band sealer moves pouches along a conveyor while sealing, making it ideal for food processing units, pharma packers and FMCG distributors. Digital temperature control, adjustable conveyor speed and an embossed date coder keep output consistent at production volumes.',
@@ -166,7 +148,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1005',
     slug: 'viento-portable-sealing-machine-8',
     name: 'VIENTo Portable Sealing Machine 8"',
-    categoryId: 'hand-sealers',
+    categoryId: 'power-tools',
     shortDescription: 'Compact 8-inch sealer for home kitchens, stalls and small batches.',
     description:
       'A lighter 8-inch version of the VIENTo hand sealer for home kitchens, market stalls and exhibitions. It takes up very little counter space, packs easily into a carry bag and gives the same clean seal on snack, spice and grocery pouches.',
@@ -195,7 +177,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1006',
     slug: 'viento-sealing-machine-accessories-kit',
     name: 'VIENTo Packaging Machine Accessories Kit',
-    categoryId: 'accessories',
+    categoryId: 'power-tools',
     shortDescription: 'Teflon cloth strips, heating elements and a screwdriver for routine care.',
     description:
       'Everything you need to keep a VIENTo hand sealer running smoothly: two Teflon cloth strips, two nichrome heating elements and a compact screwdriver. Replacing worn Teflon cloth keeps seals smooth and stops film from sticking to the bar.',
@@ -219,7 +201,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1007',
     slug: 'viento-replacement-heating-element-12',
     name: 'VIENTo Replacement Heating Element 12" (Pack of 2)',
-    categoryId: 'spare-parts',
+    categoryId: 'power-tools',
     shortDescription: 'Genuine nichrome heating elements with a step-by-step replacement guide.',
     description:
       'Genuine VIENTo nichrome heating elements made for even heat across the full seal length. Each pack contains two elements and comes with the four-step replacement guide: loosen the screws and remove the cover, replace the heat seal strip, reset the cover and cloth, then tighten the screws.',
@@ -244,7 +226,7 @@ export const SEED_PRODUCTS: Product[] = [
     id: 'p-1008',
     slug: 'viento-teflon-cloth-tape-roll',
     name: 'VIENTo Teflon Cloth Tape Roll (10 m)',
-    categoryId: 'accessories',
+    categoryId: 'power-tools',
     shortDescription: 'Heat-resistant PTFE tape that stops film from sticking to the sealing bar.',
     description:
       'A 10-metre roll of heat-resistant PTFE-coated glass cloth tape. Cut it to length for hand, impulse and band sealers. It protects the heating element and keeps the seal surface smooth.',
@@ -265,6 +247,41 @@ export const SEED_PRODUCTS: Product[] = [
     sku: 'VNT-ACC-PTFE10',
     createdAt: ts,
     updatedAt: ts,
+  },
+  {
+    id: 'p-1009',
+    slug: 'viento-electric-air-blower-700w',
+    name: 'VIENTo Electric Air Blower 700W',
+    categoryId: 'power-tools',
+    shortDescription: 'Powerful 700 W, 16,000 RPM blower for home, car, workshop and electronics cleaning.',
+    description:
+      'Blow strong, clean fast. The VIENTo Electric Air Blower pairs a high-speed 700 W motor with a lightweight 1.3 kg ABS body, so you can clear dust from keyboards and CPUs, car interiors, workshop benches and garden paths in seconds. Attach the nozzle, plug in and direct the airflow where you need it.',
+    price: 1299,
+    compareAtPrice: 1999,
+    stock: 45,
+    lowStockThreshold: 10,
+    images: [`${IMG}/power-air-blower-main.jpeg`, `${IMG}/power-air-blower.jpeg`, `${IMG}/power-air-blower-infographic.jpeg`],
+    features: [
+      'High-speed 700 W motor, 16,000 RPM',
+      'Strong 2.8 m³/min airflow for fast cleaning',
+      'Lightweight 1.3 kg ergonomic design',
+      'Durable, high-quality ABS body',
+      'Ideal for home, car, workshop, electronics and garden cleaning',
+    ],
+    specs: [
+      { label: 'Power', value: '700 W' },
+      { label: 'Speed', value: '16,000 RPM' },
+      { label: 'Air flow', value: '2.8 m³/min' },
+      { label: 'Voltage', value: '220 V ~ 50 Hz' },
+      { label: 'Weight', value: '1.3 kg' },
+      { label: 'Body', value: 'ABS housing' },
+      { label: 'Continuous use', value: 'Up to 15–20 minutes, then let the motor cool' },
+    ],
+    isActive: true,
+    isFeatured: true,
+    sku: 'VNT-PT-BLOW700',
+    createdAt: '2026-11-08T09:00:00.000Z',
+    updatedAt: '2026-11-08T09:00:00.000Z',
   },
   {
     id: 'p-2001',
@@ -483,6 +500,38 @@ export const SEED_PRODUCTS: Product[] = [
     sku: 'VNT-HD-RUN-GOLD',
     createdAt: ts,
     updatedAt: ts,
+  },
+  {
+    id: 'p-3001',
+    slug: 'golden-bronze-thali-dinner-set-6-pieces',
+    name: 'Golden Bronze Thali Dinner Set (6 Pieces)',
+    categoryId: 'home-kitchen',
+    shortDescription: 'Mirror-polished thali, glass, three katoris and a spoon with engraved floral detail.',
+    description:
+      'Bring a touch of tradition to every meal. This six-piece dinner set includes a wide thali, a tall glass, three katoris and a serving spoon, each finished to a warm golden mirror polish with delicate engraved floral motifs. Each piece is finished by skilled artisans to blend tradition with minimalism, making the set as suited to festive feasts and gifting as it is to everyday dining.',
+    price: 2999,
+    compareAtPrice: 3999,
+    stock: 24,
+    lowStockThreshold: 6,
+    images: [`${IMG}/kitchen-thali-set.jpeg`, `${IMG}/kitchen-thali-serving.jpeg`, `${IMG}/kitchen-thali-artisan.jpeg`],
+    features: [
+      '6 pieces: 1 thali, 1 glass, 3 katoris, 1 spoon',
+      'Warm golden mirror-polish finish',
+      'Engraved floral motifs by skilled artisans',
+      'Ideal for festive dining and gifting',
+    ],
+    specs: [
+      { label: 'Pieces', value: '6' },
+      { label: 'Contents', value: 'Thali, glass, 3 katoris, spoon' },
+      { label: 'Material', value: 'Bronze (Kansa)' },
+      { label: 'Finish', value: 'Mirror polish with engraved motifs' },
+      { label: 'Care', value: 'Hand wash with mild soap and dry immediately' },
+    ],
+    isActive: true,
+    isFeatured: true,
+    sku: 'VNT-HK-THALI6',
+    createdAt: '2026-11-08T09:00:00.000Z',
+    updatedAt: '2026-11-08T09:00:00.000Z',
   },
 ]
 

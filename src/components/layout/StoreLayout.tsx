@@ -8,6 +8,8 @@ import { useToast } from '@/context/ToastContext'
 import { CATEGORIES, DEPARTMENTS } from '@/data/seed'
 import { cn } from '@/lib/format'
 
+const ANNOUNCEMENTS = ['Free shipping on orders above ₹2,000', 'Cash on delivery available', '7-day easy returns', '1-year guarantee on all machines', 'New: handcrafted Home Decoration range']
+
 const NAV = [
   { to: '/about', label: 'About Us' },
   { to: '/contact', label: 'Contact Us' },
@@ -162,15 +164,22 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-      <div className="bg-navy-950 text-[13px] text-navy-100">
-        <div className="container-page flex h-9 items-center justify-between gap-4">
-          <p className="truncate">
-            <span className="demo-badge mr-2 border-gold-400/40 bg-gold-400/10 text-gold-300">Client demo</span>
-            Prices, stock and orders on this site are sample data.
-          </p>
-          <p className="hidden items-center gap-1.5 md:flex">
-            <Truck className="h-3.5 w-3.5 text-gold-300" aria-hidden /> Free shipping on demo orders above ₹2,000
-          </p>
+      <div className="flex h-9 items-center overflow-hidden bg-navy-950 text-[13px] text-navy-100">
+        <p className="sr-only">Client demo: prices, stock and orders on this site are sample data. {ANNOUNCEMENTS.join('. ')}.</p>
+        <div className="animate-marquee flex w-max shrink-0 hover:[animation-play-state:paused]" aria-hidden>
+          {[0, 1].map((copy) => (
+            <div key={copy} className="flex shrink-0 items-center">
+              <span className="flex items-center px-6">
+                <span className="demo-badge mr-2 border-gold-400/40 bg-gold-400/10 text-gold-300">Client demo</span>
+                Prices, stock and orders are sample data
+              </span>
+              {ANNOUNCEMENTS.map((a) => (
+                <span key={a} className="flex items-center gap-6 px-6 whitespace-nowrap">
+                  <span className="text-gold-300">✦</span> {a}
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
       <div className="container-page flex h-16 items-center gap-6 lg:h-[72px]">
@@ -239,7 +248,7 @@ function Header() {
           </label>
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
-            <input id="header-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search sealers, parts…" className="input rounded-full bg-slate-50 py-2 pl-9" />
+            <input id="header-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search décor, tools, kitchen…" className="input rounded-full bg-slate-50 py-2 pl-9" />
           </div>
         </form>
         <div className="ml-auto flex items-center gap-1 md:ml-0">

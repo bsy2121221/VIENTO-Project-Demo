@@ -26,7 +26,7 @@ type Errors = Partial<Record<keyof FormValues, string>>
 const toValues = (p?: Product): FormValues => ({
   name: p?.name ?? '',
   sku: p?.sku ?? '',
-  categoryId: p?.categoryId ?? 'hand-sealers',
+  categoryId: p?.categoryId ?? 'power-tools',
   price: p ? String(p.price) : '',
   compareAtPrice: p?.compareAtPrice ? String(p.compareAtPrice) : '',
   stock: p ? String(p.stock) : '',
