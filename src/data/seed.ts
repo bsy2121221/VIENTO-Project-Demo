@@ -11,21 +11,31 @@ export const CATEGORIES: Category[] = [
   { id: 'band-sealers', name: 'Band Sealers', description: 'Continuous sealing for high-volume production and packing units.' },
   { id: 'accessories', name: 'Accessories', description: 'Teflon cloth, sealing tape and maintenance kits.' },
   { id: 'spare-parts', name: 'Spare Parts', description: 'Genuine heating elements and replacement components.' },
-  { id: 'home-decor-gifts', name: 'Home Décor & Gifts', description: 'Handcrafted décor pieces and ready-to-gift hampers for homes and festivals.' },
+  { id: 'home-decor-gifts', name: 'Home Décor & Gifts', description: 'Hand-beaded cushions, placemats and table runners for homes and festive gifting.' },
+  { id: 'kitchen-essentials', name: 'Kitchen Essentials', description: 'Everyday kitchenware and storage for modern Indian homes.' },
 ]
 
+/** Display order here is the order used on the homepage and in the Explore menu. */
 export const DEPARTMENTS: Department[] = [
+  {
+    id: 'home-decor-gifts',
+    name: 'Home Decoration',
+    description: 'Hand-beaded cushion covers, placemats and table runners that bring warmth and festive sparkle to every room.',
+    categoryIds: ['home-decor-gifts'],
+    image: `${IMG}/decor-runner-gold-circles.jpeg`,
+  },
   {
     id: 'power-tools',
     name: 'Power Tools',
     description: 'Electric sealing machines, genuine spare parts and accessories for shops, kitchens and packing lines.',
     categoryIds: ['hand-sealers', 'impulse-sealers', 'band-sealers', 'accessories', 'spare-parts'],
+    image: `${IMG}/sealer-blue-studio.jpeg`,
   },
   {
-    id: 'home-decor-gifts',
-    name: 'Home Décor & Gifts',
-    description: 'Handcrafted décor pieces and thoughtful gift sets for homes, festivals and corporate gifting.',
-    categoryIds: ['home-decor-gifts'],
+    id: 'home-kitchen',
+    name: 'Home & Kitchen',
+    description: 'Practical kitchenware, storage and everyday essentials for modern homes.',
+    categoryIds: ['kitchen-essentials'],
   },
 ]
 

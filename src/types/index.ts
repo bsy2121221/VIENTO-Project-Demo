@@ -1,16 +1,18 @@
 // Domain models. These mirror the DTOs the future ASP.NET Core Web API is expected
 // to return, so the services layer can swap localStorage for HTTP without UI changes.
 
-export type CategoryId = 'hand-sealers' | 'impulse-sealers' | 'band-sealers' | 'accessories' | 'spare-parts' | 'home-decor-gifts'
+export type CategoryId = 'hand-sealers' | 'impulse-sealers' | 'band-sealers' | 'accessories' | 'spare-parts' | 'home-decor-gifts' | 'kitchen-essentials'
 
 /** Top-level storefront groupings shown on the Explore page. */
-export type DepartmentId = 'power-tools' | 'home-decor-gifts'
+export type DepartmentId = 'home-decor-gifts' | 'power-tools' | 'home-kitchen'
 
 export interface Department {
   id: DepartmentId
   name: string
   description: string
   categoryIds: CategoryId[]
+  /** Cover image for the department tile; a branded placeholder is shown when omitted. */
+  image?: string
 }
 
 export interface Category {

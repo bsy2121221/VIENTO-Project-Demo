@@ -70,7 +70,8 @@ export default function CollectionPage() {
     setParams(next, { replace: true })
   }
 
-  const other = DEPARTMENTS.find((d) => d.id !== department.id)
+  const comingSoon = !loading && !products.some((p) => department.categoryIds.includes(p.categoryId))
+  const other = DEPARTMENTS.find((d) => d.id !== department.id && products.some((p) => d.categoryIds.includes(p.categoryId)))
 
   return (
     <div className="bg-white">
@@ -78,6 +79,7 @@ export default function CollectionPage() {
         <div className="container-page py-8">
           <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: department.name }]} />
           <h1 className="mt-4 text-3xl font-extrabold sm:text-4xl">{department.name}</h1>
+          <p className="mt-2 max-w-2xl text-slate-600">{department.description}</p>
         </div>
       </div>
 
@@ -172,8 +174,8 @@ export default function CollectionPage() {
             <div className="card">
               <EmptyState
                 icon={<PackageSearch className="h-8 w-8" />}
-                title="No products in this collection"
-                description="Try clearing filters or browse another collection."
+                title={comingSoon ? 'Coming soon' : 'No products in this collection'}
+                description={comingSoon ? `We are curating the ${department.name} range. Check back soon, or browse our other collections.` : 'Try clearing filters or browse another collection.'}
                 action={
                   other ? (
                     <Link to={`/collections/${other.id}`} className="btn btn-primary">

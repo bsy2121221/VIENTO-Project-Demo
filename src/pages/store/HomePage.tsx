@@ -1,18 +1,21 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, BadgeCheck, Boxes, Cog, Gauge, Gift, Hand, Headphones, PackageCheck, Quote, Ribbon, ShieldCheck, Thermometer, Timer, Truck, Wrench, Zap } from 'lucide-react'
+import { ArrowRight, BadgeCheck, CookingPot, Gauge, Hand, Headphones, PackageCheck, Quote, ShieldCheck, Sofa, Thermometer, Timer, Truck, Wrench, Zap, type LucideIcon } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { ErrorState, SkeletonCard } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
-import { CATEGORIES, DEMO_TESTIMONIALS } from '@/data/seed'
-import type { CategoryId } from '@/types'
+import { DEMO_TESTIMONIALS, DEPARTMENTS } from '@/data/seed'
+import type { DepartmentId } from '@/types'
 
-const CATEGORY_ICONS: Record<CategoryId, typeof Cog> = {
-  'hand-sealers': Hand,
-  'impulse-sealers': Zap,
-  'band-sealers': Boxes,
-  accessories: Ribbon,
-  'spare-parts': Wrench,
-  'home-decor-gifts': Gift,
+const DEPARTMENT_ICONS: Record<DepartmentId, LucideIcon> = {
+  'home-decor-gifts': Sofa,
+  'power-tools': Wrench,
+  'home-kitchen': CookingPot,
+}
+
+const DEPARTMENT_HEADINGS: Record<DepartmentId, string> = {
+  'home-decor-gifts': 'Handcrafted pieces for every room',
+  'power-tools': 'Sealing machines built for daily use',
+  'home-kitchen': 'Everyday essentials for your kitchen',
 }
 
 const BENEFITS = [
@@ -31,7 +34,11 @@ const REASONS = [
 
 export default function HomePage() {
   const { products, loading, error, reload } = useCatalog()
-  const featured = products.filter((p) => p.isFeatured).slice(0, 4)
+  const productsFor = (id: DepartmentId) => {
+    const ids = DEPARTMENTS.find((d) => d.id === id)?.categoryIds ?? []
+    return products.filter((p) => ids.includes(p.categoryId)).sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
+  }
+  const countFor = (id: DepartmentId) => productsFor(id).length
 
   return (
     <>
@@ -93,64 +100,101 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="container-page py-20" aria-labelledby="categories-heading">
+      {/* Departments */}
+      <section className="container-page py-20" aria-labelledby="departments-heading">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Browse the range</p>
-            <h2 id="categories-heading" className="mt-2 text-3xl font-extrabold">
-              Product categories
+            <h2 id="departments-heading" className="mt-2 text-3xl font-extrabold">
+              Shop by category
             </h2>
           </div>
           <Link to="/products" className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 hover:text-navy-900">
             View all products <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORIES.map((c) => {
-            const Icon = CATEGORY_ICONS[c.id]
-            const count = products.filter((p) => p.categoryId === c.id).length
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {DEPARTMENTS.map((d) => {
+            const Icon = DEPARTMENT_ICONS[d.id]
+            const count = countFor(d.id)
             return (
-              <Link key={c.id} to={`/products?category=${c.id}`} className="group card p-6 transition duration-300 hover:-translate-y-1 hover:border-navy-200 hover:shadow-lg hover:shadow-navy-900/5">
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-700 transition group-hover:bg-navy-900 group-hover:text-gold-300">
-                  <Icon className="h-6 w-6" aria-hidden />
-                </span>
-                <h3 className="mt-5 font-bold">{c.name}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{c.description}</p>
-                <p className="mt-4 text-xs font-semibold text-navy-600">{loading ? '…' : `${count} product${count === 1 ? '' : 's'}`}</p>
+              <Link
+                key={d.id}
+                to={`/collections/${d.id}`}
+                className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[1.75rem] bg-navy-900 shadow-lg shadow-navy-900/10 transition duration-300 hover:-translate-y-1 hover:shadow-xl sm:aspect-[4/3] md:aspect-[4/5]"
+              >
+                {d.image ? (
+                  <img src={d.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-navy-800 via-navy-900 to-navy-950" aria-hidden>
+                    <Icon className="h-28 w-28 text-gold-300/25 transition duration-500 group-hover:scale-110" strokeWidth={1.25} />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/35 to-transparent" aria-hidden />
+                <div className="relative p-6">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-gold-300 backdrop-blur">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <h3 className="mt-4 text-2xl font-extrabold text-white">{d.name}</h3>
+                  <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-navy-100">{d.description}</p>
+                  <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-300">
+                    {loading ? '…' : count ? `Explore ${count} product${count === 1 ? '' : 's'}` : 'Coming soon'}
+                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" aria-hidden />
+                  </p>
+                </div>
               </Link>
             )
           })}
         </div>
       </section>
 
-      {/* Featured */}
-      <section className="bg-slate-50 py-20" aria-labelledby="featured-heading">
-        <div className="container-page">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="eyebrow">Best sellers</p>
-              <h2 id="featured-heading" className="mt-2 text-3xl font-extrabold">
-                Featured products
-              </h2>
-            </div>
-            <Link to="/products" className="btn btn-outline">
-              Shop all <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </div>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {error ? (
-              <div className="col-span-full">
-                <ErrorState message={error} onRetry={reload} />
+      {/* One section per department */}
+      {DEPARTMENTS.map((d, i) => {
+        const items = productsFor(d.id).slice(0, 4)
+        const Icon = DEPARTMENT_ICONS[d.id]
+        return (
+          <section key={d.id} className={i % 2 === 0 ? 'bg-slate-50 py-20' : 'py-20'} aria-labelledby={`dept-${d.id}-heading`}>
+            <div className="container-page">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div className="max-w-2xl">
+                  <p className="eyebrow inline-flex items-center gap-1.5">
+                    <Icon className="h-3.5 w-3.5" aria-hidden /> {d.name}
+                  </p>
+                  <h2 id={`dept-${d.id}-heading`} className="mt-2 text-3xl font-extrabold">
+                    {DEPARTMENT_HEADINGS[d.id]}
+                  </h2>
+                  <p className="mt-2 text-slate-600">{d.description}</p>
+                </div>
+                <Link to={`/collections/${d.id}`} className="btn btn-outline">
+                  Explore {d.name} <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
               </div>
-            ) : loading ? (
-              Array.from({ length: 4 }, (_, i) => <SkeletonCard key={i} />)
-            ) : (
-              featured.map((p) => <ProductCard key={p.id} product={p} />)
-            )}
-          </div>
-        </div>
-      </section>
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {error ? (
+                  <div className="col-span-full">
+                    <ErrorState message={error} onRetry={reload} />
+                  </div>
+                ) : loading ? (
+                  Array.from({ length: 4 }, (_, k) => <SkeletonCard key={k} />)
+                ) : items.length ? (
+                  items.map((p) => <ProductCard key={p.id} product={p} />)
+                ) : (
+                  <div className="card col-span-full flex flex-col items-center gap-3 px-6 py-14 text-center">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-navy-900 text-gold-300">
+                      <Icon className="h-7 w-7" aria-hidden />
+                    </span>
+                    <h3 className="text-lg font-bold">Coming soon</h3>
+                    <p className="max-w-md text-sm text-slate-500">We are curating the {d.name} range. Check back soon, or contact us if you are looking for something specific.</p>
+                    <Link to="/contact" className="btn btn-primary btn-sm mt-2">
+                      Contact us
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )
+      })}
 
       {/* Benefits */}
       <section className="container-page grid items-center gap-14 py-24 lg:grid-cols-2" aria-labelledby="benefits-heading">
