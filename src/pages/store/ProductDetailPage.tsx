@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { BadgeCheck, CheckCircle2, Info, PackageX, ShoppingCart, Truck, Zap } from 'lucide-react'
+import { BadgeCheck, CheckCircle2, ChevronRight, Info, PackageX, ShoppingCart, Store, Truck, Zap } from 'lucide-react'
 import ProductCard, { useAddToCart } from '@/components/product/ProductCard'
 import { Breadcrumbs, EmptyState, ErrorState, PageLoader, ProductImage, QuantitySelector, StockBadge } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
 import { useCart } from '@/context/CartContext'
-import { CATEGORIES } from '@/data/seed'
+import { CategoryLabel, SellerAvatar } from '@/components/marketplace'
 import { cn, formatPrice } from '@/lib/format'
 
 export default function ProductDetailPage() {
   const { slug } = useParams()
-  const { products, loading, error, reload } = useCatalog()
+  const { products, categories, sellers, loading, error, reload } = useCatalog()
   const { quantityOf } = useCart()
   const addToCart = useAddToCart()
   const navigate = useNavigate()
@@ -42,7 +42,9 @@ export default function ProductDetailPage() {
       </div>
     )
 
-  const category = CATEGORIES.find((c) => c.id === product.categoryId)
+  const category = categories.find((c) => c.id === product.categoryId)
+  const seller = sellers.find((s) => s.id === product.sellerId)
+  const sellerProductCount = products.filter((p) => p.sellerId === product.sellerId).length
   const inCart = quantityOf(product.id)
   const maxAddable = Math.max(0, product.stock - inCart)
   const out = product.stock <= 0
@@ -60,7 +62,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container-page py-8">
-      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Shop', to: '/products' }, { label: category?.name ?? 'Products', to: `/products?category=${product.categoryId}` }, { label: product.name }]} />
+      <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Shop', to: '/products' }, { label: category?.name ?? 'Products', to: `/collections/${product.categoryId}` }, { label: product.name }]} />
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
         {/* Gallery */}
@@ -92,7 +94,7 @@ export default function ProductDetailPage() {
 
         {/* Info */}
         <div>
-          <p className="eyebrow">{category?.name}</p>
+          <CategoryLabel category={category} className="text-xs" />
           <h1 className="mt-2 text-3xl leading-tight font-extrabold sm:text-4xl">{product.name}</h1>
           <p className="mt-2 text-sm text-slate-500">SKU: {product.sku}</p>
           <p className="mt-5 text-lg leading-relaxed text-slate-600">{product.shortDescription}</p>
@@ -134,7 +136,27 @@ export default function ProductDetailPage() {
             ))}
           </ul>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          {seller && (
+            <Link to={`/sellers/${seller.slug}`} className="group mt-8 flex items-center gap-4 rounded-2xl border border-slate-200 p-4 transition hover:border-navy-300 hover:bg-slate-50">
+              <SellerAvatar seller={seller} />
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs text-slate-500">Sold by</span>
+                <span className="flex items-center gap-1.5 truncate font-bold text-navy-900">
+                  {seller.shopName}
+                  {seller.isOfficial && <BadgeCheck className="h-4 w-4 shrink-0 text-sky-600" aria-label="Official store" />}
+                </span>
+                <span className="block text-xs text-slate-500">
+                  {seller.city}, {seller.state} · {sellerProductCount} product{sellerProductCount === 1 ? '' : 's'}
+                </span>
+              </span>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-navy-700">
+                <Store className="h-4 w-4" aria-hidden /> <span className="hidden sm:inline">View shop</span>
+                <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </Link>
+          )}
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
               <Truck className="h-5 w-5 text-navy-700" aria-hidden />
               <p className="text-sm">
@@ -146,9 +168,9 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
               <BadgeCheck className="h-5 w-5 text-navy-700" aria-hidden />
               <p className="text-sm">
-                <span className="font-semibold text-navy-900">Genuine VIENTo</span>
+                <span className="font-semibold text-navy-900">{seller?.isOfficial ? 'Genuine VIENTo' : 'Verified seller'}</span>
                 <br />
-                <span className="text-slate-500">Manufacturer guarantee</span>
+                <span className="text-slate-500">{seller?.isOfficial ? 'Manufacturer guarantee' : 'Quality-checked listing'}</span>
               </p>
             </div>
           </div>

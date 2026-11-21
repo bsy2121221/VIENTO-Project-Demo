@@ -17,11 +17,14 @@ import { MyOrdersPage, OrderTrackingPage, TrackOrderPage } from '@/pages/store/O
 import { NotFoundPage, PolicyPage } from '@/pages/store/MiscPages'
 import AccountAuthPage from '@/pages/store/AccountAuthPage'
 import { AboutPage, ContactPage } from '@/pages/store/InfoPages'
+import { SellPage, SellerShopPage } from '@/pages/store/SellerPages'
 import AdminLoginPage from '@/pages/admin/AdminLoginPage'
 import DashboardPage from '@/pages/admin/DashboardPage'
 import ProductsAdminPage from '@/pages/admin/ProductsAdminPage'
 import InventoryPage from '@/pages/admin/InventoryPage'
 import { OrderDetailAdminPage, OrdersAdminPage } from '@/pages/admin/OrdersAdminPages'
+import SellersAdminPage from '@/pages/admin/SellersAdminPage'
+import CategoriesAdminPage from '@/pages/admin/CategoriesAdminPage'
 
 export default function App() {
   return (
@@ -45,6 +48,8 @@ export default function App() {
                     <Route path="register" element={<AccountAuthPage key="register" mode="register" />} />
                     <Route path="about" element={<AboutPage />} />
                     <Route path="contact" element={<ContactPage />} />
+                    <Route path="sell" element={<SellPage />} />
+                    <Route path="sellers/:slug" element={<SellerShopPage />} />
                     <Route
                       path="orders"
                       element={
@@ -69,6 +74,8 @@ export default function App() {
                   >
                     <Route index element={<DashboardPage />} />
                     <Route path="products" element={<ProductsAdminPage />} />
+                    <Route path="categories" element={<CategoriesAdminPage />} />
+                    <Route path="sellers" element={<SellersAdminPage />} />
                     <Route path="inventory" element={<InventoryPage />} />
                     <Route path="orders" element={<OrdersAdminPage />} />
                     <Route path="orders/:id" element={<OrderDetailAdminPage />} />

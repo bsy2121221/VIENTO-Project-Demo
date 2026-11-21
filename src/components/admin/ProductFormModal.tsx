@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ImagePlus, Star, Trash2 } from 'lucide-react'
 import type { CategoryId, Product, ProductInput } from '@/types'
-import { CATEGORIES } from '@/data/seed'
+import { OFFICIAL_SELLER_ID } from '@/data/seed'
+import { useStore } from '@/context/StoreContext'
 import { Field, Modal, ProductImage, Spinner } from '@/components/ui'
 import { cn, slugify } from '@/lib/format'
 
@@ -9,6 +10,7 @@ interface FormValues {
   name: string
   sku: string
   categoryId: CategoryId
+  sellerId: string
   price: string
   compareAtPrice: string
   stock: string
@@ -27,6 +29,7 @@ const toValues = (p?: Product): FormValues => ({
   name: p?.name ?? '',
   sku: p?.sku ?? '',
   categoryId: p?.categoryId ?? 'power-tools',
+  sellerId: p?.sellerId ?? OFFICIAL_SELLER_ID,
   price: p ? String(p.price) : '',
   compareAtPrice: p?.compareAtPrice ? String(p.compareAtPrice) : '',
   stock: p ? String(p.stock) : '',
@@ -83,6 +86,9 @@ const readImage = (file: File): Promise<string> =>
   })
 
 export default function ProductFormModal({ open, product, onClose, onSubmit }: { open: boolean; product?: Product; onClose: () => void; onSubmit: (input: ProductInput) => Promise<void> }) {
+  const { categories, sellers } = useStore()
+  // Products can be assigned to approved sellers; keep the current seller selectable even if they were since suspended.
+  const sellerOptions = sellers.filter((s) => s.status === 'approved' || s.id === product?.sellerId)
   const [values, setValues] = useState<FormValues>(toValues(product))
   const [errors, setErrors] = useState<Errors>({})
   const [touched, setTouched] = useState(false)
@@ -142,6 +148,7 @@ export default function ProductFormModal({ open, product, onClose, onSubmit }: {
         slug: slugify(values.name),
         sku: values.sku.trim().toUpperCase(),
         categoryId: values.categoryId,
+        sellerId: values.sellerId,
         price: Math.round(Number(values.price)),
         compareAtPrice: values.compareAtPrice ? Math.round(Number(values.compareAtPrice)) : undefined,
         stock: Number(values.stock),
@@ -243,13 +250,26 @@ export default function ProductFormModal({ open, product, onClose, onSubmit }: {
           </Field>
           <Field label="Category" htmlFor="pf-categoryId">
             <select {...text('categoryId')}>
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
+                  {c.isActive ? '' : ' (hidden)'}
                 </option>
               ))}
             </select>
           </Field>
+          <div className="sm:col-span-2">
+            <Field label="Seller" htmlFor="pf-sellerId" hint="The shop that lists and ships this product. Only approved sellers are shown.">
+              <select {...text('sellerId')}>
+                {sellerOptions.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.shopName}
+                    {s.status === 'approved' ? '' : ` (${s.status})`}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
           <Field label="Demo price (₹)" htmlFor="pf-price" error={errors.price}>
             <input {...text('price')} type="number" min={1} inputMode="numeric" />
           </Field>

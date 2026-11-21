@@ -1,29 +1,94 @@
-import type { Category, Department, Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus, Product, ShippingAddress, StatusEvent } from '@/types'
+import type { Category, Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus, Product, Seller, ShippingAddress, StatusEvent } from '@/types'
 import { ORDER_STATUSES } from '@/types'
 import { addDays, calcShipping } from '@/lib/format'
 
 const IMG = '/images/products'
 const REPRESENTATIVE = 'Representative image. Final photography for this model is pending.'
 
-/** The three ranges VIENTo sells. Each category is also a department (collection page, Explore menu, homepage tile). */
-export const CATEGORIES: Category[] = [
-  { id: 'home-decor-gifts', name: 'Home Decoration', description: 'Hand-beaded cushion covers, placemats and table runners that bring warmth and festive sparkle to every room.' },
-  { id: 'power-tools', name: 'Power Tools', description: 'Sealing machines, air blowers, genuine spare parts and accessories for homes, shops and workshops.' },
-  { id: 'home-kitchen', name: 'Home & Kitchen', description: 'Handcrafted dinnerware and everyday kitchen essentials for modern Indian homes.' },
+/** The platform's own store. Every original VIENTo product belongs to it. */
+export const OFFICIAL_SELLER_ID = 's-viento'
+
+/**
+ * Marketplace categories, in storefront display order. The first three hold the original VIENTo ranges;
+ * the rest are open for marketplace sellers and show a "sellers onboarding" state until products are listed.
+ */
+export const SEED_CATEGORIES: Category[] = [
+  { id: 'home-decor-gifts', name: 'Home Decoration', description: 'Hand-beaded cushion covers, placemats and table runners that bring warmth and festive sparkle to every room.', color: '#db2777', icon: 'sparkles', image: `${IMG}/decor-runner-gold-circles.jpeg`, isActive: true, sortOrder: 1 },
+  { id: 'power-tools', name: 'Power Tools', description: 'Sealing machines, air blowers, genuine spare parts and accessories for homes, shops and workshops.', color: '#ea580c', icon: 'wrench', image: `${IMG}/sealer-blue-studio.jpeg`, isActive: true, sortOrder: 2 },
+  { id: 'home-kitchen', name: 'Home & Kitchen', description: 'Handcrafted dinnerware and everyday kitchen essentials for modern Indian homes.', color: '#ca8a04', icon: 'cooking-pot', image: `${IMG}/kitchen-thali-set.jpeg`, isActive: true, sortOrder: 3 },
+  { id: 'women-ethnic', name: 'Women Ethnic', description: 'Sarees, kurtis, suits and dupattas from trusted sellers across India.', color: '#e11d48', icon: 'shirt', isActive: true, sortOrder: 4 },
+  { id: 'women-western', name: 'Women Western', description: 'Tops, dresses, jeans and co-ord sets for everyday style.', color: '#9333ea', icon: 'shopping-bag', isActive: true, sortOrder: 5 },
+  { id: 'men', name: 'Men', description: 'Shirts, t-shirts, kurtas and everyday essentials for men.', color: '#2563eb', icon: 'shirt', isActive: true, sortOrder: 6 },
+  { id: 'kids-toys', name: 'Kids & Toys', description: 'Clothing, toys and baby care for little ones.', color: '#0891b2', icon: 'baby', isActive: true, sortOrder: 7 },
+  { id: 'beauty-health', name: 'Beauty & Health', description: 'Skincare, makeup, haircare and wellness products.', color: '#c026d3', icon: 'heart-pulse', isActive: true, sortOrder: 8 },
+  { id: 'jewellery-accessories', name: 'Jewellery & Accessories', description: 'Fashion jewellery, watches, bags and accessories.', color: '#d97706', icon: 'gem', isActive: true, sortOrder: 9 },
+  { id: 'footwear', name: 'Bags & Footwear', description: 'Sandals, sneakers, handbags and travel bags.', color: '#16a34a', icon: 'footprints', isActive: true, sortOrder: 10 },
+  { id: 'electronics', name: 'Electronics', description: 'Mobile accessories, audio, smart gadgets and appliances.', color: '#4f46e5', icon: 'smartphone', isActive: true, sortOrder: 11 },
+  { id: 'sports-fitness', name: 'Sports & Fitness', description: 'Gym gear, yoga mats, sportswear and outdoor equipment.', color: '#059669', icon: 'dumbbell', isActive: true, sortOrder: 12 },
 ]
 
-const DEPARTMENT_IMAGES: Partial<Record<Category['id'], string>> = {
-  'home-decor-gifts': `${IMG}/decor-runner-gold-circles.jpeg`,
-  'power-tools': `${IMG}/sealer-blue-studio.jpeg`,
-  'home-kitchen': `${IMG}/kitchen-thali-set.jpeg`,
-}
+const sellerTs = '2026-09-15T09:00:00.000Z'
 
-/** Display order here is the order used on the homepage and in the Explore menu. */
-export const DEPARTMENTS: Department[] = CATEGORIES.map((c) => ({ ...c, categoryIds: [c.id], image: DEPARTMENT_IMAGES[c.id] }))
+/** One approved official store plus sample applications so the seller-approval flow can be demonstrated. */
+export const SEED_SELLERS: Seller[] = [
+  {
+    id: OFFICIAL_SELLER_ID,
+    slug: 'viento-official',
+    shopName: 'VIENTo Official Store',
+    ownerName: 'VIENTo Packaging Solutions',
+    email: 'store@vientodemo.com',
+    phone: '9000000000',
+    city: 'Industrial Area Phase II',
+    state: 'India',
+    categoryIds: ['power-tools', 'home-decor-gifts', 'home-kitchen'],
+    description: 'Sealing machines, handcrafted décor and dinnerware, sold and shipped directly by VIENTo.',
+    status: 'approved',
+    commissionRate: 0,
+    color: '#0b1f45',
+    isOfficial: true,
+    createdAt: sellerTs,
+    updatedAt: sellerTs,
+  },
+  {
+    id: 's-demo-bandhej',
+    slug: 'jaipur-bandhej-house',
+    shopName: 'Jaipur Bandhej House (Demo)',
+    ownerName: 'Sunita Sharma',
+    email: 'bandhej.demo@example.com',
+    phone: '9876511001',
+    city: 'Jaipur',
+    state: 'Rajasthan',
+    gstin: '08ABCDE1234F1Z5',
+    categoryIds: ['women-ethnic', 'jewellery-accessories'],
+    description: 'Hand-dyed bandhej sarees, dupattas and kurtis from Jaipur artisans.',
+    status: 'pending',
+    commissionRate: 10,
+    color: '#e11d48',
+    createdAt: '2026-11-17T11:30:00.000Z',
+    updatedAt: '2026-11-17T11:30:00.000Z',
+  },
+  {
+    id: 's-demo-littlesteps',
+    slug: 'little-steps-kids',
+    shopName: 'Little Steps Kids (Demo)',
+    ownerName: 'Arjun Patel',
+    email: 'littlesteps.demo@example.com',
+    phone: '9876511002',
+    city: 'Surat',
+    state: 'Gujarat',
+    categoryIds: ['kids-toys'],
+    description: 'Soft cotton baby clothing and wooden toys.',
+    status: 'pending',
+    commissionRate: 10,
+    color: '#0891b2',
+    createdAt: '2026-11-19T15:10:00.000Z',
+    updatedAt: '2026-11-19T15:10:00.000Z',
+  },
+]
 
 const ts = '2026-10-01T09:00:00.000Z'
 
-export const SEED_PRODUCTS: Product[] = [
+const RAW_PRODUCTS: Array<Omit<Product, 'sellerId'>> = [
   {
     id: 'p-1001',
     slug: 'viento-poly-sealing-machine-12-orange',
@@ -535,6 +600,8 @@ export const SEED_PRODUCTS: Product[] = [
   },
 ]
 
+export const SEED_PRODUCTS: Product[] = RAW_PRODUCTS.map((p) => ({ ...p, sellerId: OFFICIAL_SELLER_ID }))
+
 /** Demo-only baseline monthly revenue used to give the sales chart history. */
 export const MOCK_MONTHLY_REVENUE = [38400, 45200, 41800, 52600, 58900, 31200]
 
@@ -621,7 +688,7 @@ export const createSeedOrders = (now = new Date()): Order[] =>
     const createdAt = created.toISOString()
     const items: OrderItem[] = spec.items.map(([productId, quantity]) => {
       const p = SEED_PRODUCTS.find((x) => x.id === productId)!
-      return { productId, name: p.name, sku: p.sku, image: p.images[0], unitPrice: p.price, quantity }
+      return { productId, name: p.name, sku: p.sku, image: p.images[0], unitPrice: p.price, quantity, sellerId: OFFICIAL_SELLER_ID, sellerName: SEED_SELLERS[0].shopName }
     })
     const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
     const shipping = calcShipping(subtotal)

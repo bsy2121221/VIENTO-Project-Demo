@@ -42,21 +42,21 @@ export function SeeAllButton({ to, label = 'See all collection' }: { to: string;
 
 /* ---------- Trust icons, shown at the bottom of the homepage just above the footer ---------- */
 const TRUST = [
-  { icon: BadgeCheck, title: '100% Genuine', text: 'Direct from VIENTo' },
-  { icon: Truck, title: 'Free Shipping', text: 'On orders above ₹2,000' },
-  { icon: Banknote, title: 'Cash on Delivery', text: 'Pay when it arrives' },
-  { icon: RotateCcw, title: '7-Day Returns', text: 'Easy return & exchange' },
-  { icon: ShieldCheck, title: '1-Year Warranty', text: 'On all VIENTo machines' },
-  { icon: Lock, title: 'Secure Checkout', text: 'UPI, cards & net banking' },
+  { icon: BadgeCheck, title: 'Verified Sellers', text: 'Every seller is reviewed', color: '#db2777' },
+  { icon: Truck, title: 'Free Shipping', text: 'On orders above ₹2,000', color: '#9333ea' },
+  { icon: Banknote, title: 'Cash on Delivery', text: 'Pay when it arrives', color: '#2563eb' },
+  { icon: RotateCcw, title: '7-Day Returns', text: 'Easy return & exchange', color: '#0891b2' },
+  { icon: ShieldCheck, title: '1-Year Warranty', text: 'On all VIENTo machines', color: '#16a34a' },
+  { icon: Lock, title: 'Secure Checkout', text: 'UPI, cards & net banking', color: '#ea580c' },
 ]
 
 export function TrustBar() {
   return (
     <section className="container-page" aria-label="Why shop with VIENTo">
       <ul className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 lg:grid-cols-6">
-        {TRUST.map(({ icon: Icon, title, text }) => (
+        {TRUST.map(({ icon: Icon, title, text, color }) => (
           <li key={title} className="flex flex-col items-center gap-2 bg-white px-2 py-4 text-center sm:flex-row sm:gap-3 sm:px-5 sm:text-left lg:flex-col lg:gap-2 lg:px-3 lg:py-5 lg:text-center">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-50 text-gold-600 ring-1 ring-gold-200">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${color}1f`, color }}>
               <Icon className="h-5 w-5" aria-hidden />
             </span>
             <span>

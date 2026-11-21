@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ChevronLeft, ChevronRight, CookingPot, Quote, Star } from 'lucide-react'
+import { ArrowRight, BadgePercent, ChevronLeft, ChevronRight, CookingPot, IndianRupee, PackageCheck, Quote, Star, Store, Users } from 'lucide-react'
 import ShopCard from '@/components/product/ShopCard'
 import HeroBanner from '@/components/home/HeroBanner'
 import { PowerToolsBanner, PromiseSection, PromoBanners, SeeAllButton, SupportSection, TrustBar } from '@/components/home/HomeSections'
 import { ErrorState } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
-import { DEMO_TESTIMONIALS, DEPARTMENTS } from '@/data/seed'
+import { DEMO_TESTIMONIALS } from '@/data/seed'
+import { CategoryBubble } from '@/components/marketplace'
 import { cn } from '@/lib/format'
-import type { DepartmentId, Product } from '@/types'
+import type { Category, Product } from '@/types'
 
 const IMG = '/images/products'
 
@@ -23,10 +24,9 @@ const TILES: Array<{ title: string; cta: string; to: string; image: string; cont
 /** Homepage product rows stay short; the full range is one click away via "See all collection". */
 const HOME_LIMIT = 5
 
-type TabId = 'best' | DepartmentId | 'new'
+type TabId = string
 
 const discountOf = (p: Product) => (p.compareAtPrice ? 1 - p.price / p.compareAtPrice : 0)
-const inDepartment = (p: Product, id: DepartmentId) => DEPARTMENTS.find((d) => d.id === id)?.categoryIds.includes(p.categoryId) ?? false
 
 function ShopCardSkeleton() {
   return (
@@ -49,6 +49,79 @@ function SectionHeading({ eyebrow, title, action }: { eyebrow?: string; title: s
       </div>
       {action}
     </div>
+  )
+}
+
+/* ---------- Colourful "shop by category" strip ---------- */
+function CategoryStrip({ categories, products }: { categories: Category[]; products: Product[] }) {
+  return (
+    <section className="container-page pt-10" aria-labelledby="category-strip-heading">
+      <h2 id="category-strip-heading" className="text-center text-xl font-extrabold sm:text-2xl">
+        Shop from <span className="bg-rainbow bg-clip-text text-transparent">{categories.length}+ categories</span>
+      </h2>
+      <ul className="no-scrollbar -mx-4 mt-6 flex gap-3 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-6 lg:gap-4 lg:overflow-visible lg:px-0">
+        {categories.map((c) => {
+          const count = products.filter((p) => p.categoryId === c.id).length
+          return (
+            <li key={c.id} className="w-24 shrink-0 sm:w-28 lg:w-auto">
+              <Link to={`/collections/${c.id}`} className="group flex flex-col items-center gap-2 rounded-2xl p-2 text-center transition hover:-translate-y-1">
+                <span className="rounded-full p-1 ring-2 ring-transparent transition group-hover:ring-[var(--c)]" style={{ ['--c' as string]: c.color }}>
+                  <CategoryBubble category={c} size="lg" />
+                </span>
+                <span className="text-[13px] leading-tight font-bold text-navy-900">{c.name}</span>
+                <span className="text-[11px] font-medium" style={{ color: count ? c.color : undefined }}>
+                  {count ? `${count} product${count === 1 ? '' : 's'}` : <span className="text-slate-400">Coming soon</span>}
+                </span>
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+/* ---------- "Sell on VIENTo" call-to-action ---------- */
+const SELLER_PERKS = [
+  { icon: Users, title: 'Reach new customers', text: 'Get discovered by shoppers across India.' },
+  { icon: BadgePercent, title: 'Low commission', text: 'Simple, transparent per-order commission.' },
+  { icon: PackageCheck, title: 'Easy listing', text: 'Our team helps you list your catalogue.' },
+  { icon: IndianRupee, title: 'Regular payouts', text: 'Earnings settled straight to your bank.' },
+]
+
+function SellerCta({ sellerCount }: { sellerCount: number }) {
+  return (
+    <section className="container-page py-12" aria-labelledby="seller-cta-heading">
+      <div className="bg-rainbow relative overflow-hidden rounded-[2rem] px-7 py-10 text-white sm:px-12 lg:py-14">
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-white/10" aria-hidden />
+        <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-white/10" aria-hidden />
+        <div className="relative grid items-center gap-10 lg:grid-cols-2">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold tracking-wider uppercase">
+              <Store className="h-3.5 w-3.5" aria-hidden /> For sellers
+            </p>
+            <h2 id="seller-cta-heading" className="mt-4 text-3xl leading-tight font-extrabold text-white sm:text-4xl">
+              Sell your products on VIENTo
+            </h2>
+            <p className="mt-3 max-w-md text-white/85">
+              Manufacturers, wholesalers, artisans and home businesses: list your products and grow with us. {sellerCount > 0 && `${sellerCount} seller${sellerCount === 1 ? ' is' : 's are'} already selling.`}
+            </p>
+            <Link to="/sell" className="btn btn-lg mt-7 rounded-full bg-white font-bold text-navy-900 hover:bg-white/90">
+              Start selling <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {SELLER_PERKS.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="rounded-2xl bg-white/15 p-5 backdrop-blur">
+                <Icon className="h-6 w-6" aria-hidden />
+                <h3 className="mt-3 font-bold text-white">{title}</h3>
+                <p className="mt-1 text-sm text-white/80">{text}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -93,10 +166,11 @@ function TrendingCarousel({ products, loading }: { products: Product[]; loading:
 }
 
 /* ---------- Tabbed best sellers ---------- */
-function BestsellerTabs({ products, loading }: { products: Product[]; loading: boolean }) {
+function BestsellerTabs({ products, categories, loading }: { products: Product[]; categories: Category[]; loading: boolean }) {
   const tabs: Array<{ id: TabId; label: string }> = [
     { id: 'best', label: 'Best Sellers' },
-    ...DEPARTMENTS.map((d) => ({ id: d.id as TabId, label: d.name })),
+    // Only categories that have products get a tab, so a tab is never empty.
+    ...categories.filter((c) => products.some((p) => p.categoryId === c.id)).map((c) => ({ id: c.id, label: c.name })),
     { id: 'new', label: 'New Arrivals' },
   ]
   const [active, setActive] = useState<TabId>('best')
@@ -108,7 +182,7 @@ function BestsellerTabs({ products, loading }: { products: Product[]; loading: b
       case 'new':
         return [...products].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id))
       default:
-        return products.filter((p) => inDepartment(p, active))
+        return products.filter((p) => p.categoryId === active)
     }
   })().slice(0, HOME_LIMIT)
 
@@ -126,7 +200,7 @@ function BestsellerTabs({ products, loading }: { products: Product[]; loading: b
           <h2 id="bestsellers-heading" className="mt-3 text-2xl font-extrabold sm:text-3xl">
             Loved by homes &amp; businesses across India
           </h2>
-          <p className="mt-2 text-sm text-slate-500">Our most popular picks, from handcrafted décor to everyday sealing machines.</p>
+          <p className="mt-2 text-sm text-slate-500">Popular picks from every category on VIENTo.</p>
         </div>
 
         <div role="tablist" aria-label="Product collections" className="no-scrollbar mt-8 flex justify-start gap-2 overflow-x-auto sm:justify-center">
@@ -184,12 +258,12 @@ function BestsellerTabs({ products, loading }: { products: Product[]; loading: b
 
 /* ---------- Page ---------- */
 export default function HomePage() {
-  const { products, loading, error, reload } = useCatalog()
+  const { products, categories, sellers, loading, error, reload } = useCatalog()
   const maxDiscount = Math.floor(Math.max(0, ...products.map(discountOf)) * 100)
-  // Trending: the best in-stock deal from each range in turn (décor, tools, kitchen, ...), so all three ranges show up.
+  // Trending: the best in-stock deal from each category in turn, so every stocked category shows up.
   const trending = (() => {
     const byDeal = (a: Product, b: Product) => Number(a.stock <= 0) - Number(b.stock <= 0) || discountOf(b) - discountOf(a)
-    const queues = DEPARTMENTS.map((d) => products.filter((p) => p.compareAtPrice && inDepartment(p, d.id)).sort(byDeal))
+    const queues = categories.map((c) => products.filter((p) => p.compareAtPrice && p.categoryId === c.id).sort(byDeal))
     const picks: Product[] = []
     for (let round = 0; picks.length < HOME_LIMIT && queues.some((q) => q.length > round); round++)
       for (const q of queues) if (q[round] && picks.length < HOME_LIMIT) picks.push(q[round])
@@ -200,10 +274,12 @@ export default function HomePage() {
     <>
       <HeroBanner maxDiscount={maxDiscount} />
 
+      <CategoryStrip categories={categories} products={products} />
+
       {/* Category tiles */}
       <section className="container-page pt-16" aria-label="Shop by category">
         <SectionHeading
-          eyebrow="Shop by category"
+          eyebrow="Featured collections"
           title="Find what you need"
           action={
             <Link to="/products" className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 hover:text-navy-900">
@@ -246,10 +322,12 @@ export default function HomePage() {
           <TrendingCarousel products={trending} loading={loading} />
           <PromoBanners products={products} />
           <div className="h-12" aria-hidden />
-          <BestsellerTabs products={products} loading={loading} />
+          <BestsellerTabs products={products} categories={categories} loading={loading} />
           <PowerToolsBanner products={products} />
         </>
       )}
+
+      <SellerCta sellerCount={sellers.length} />
 
       {/* Testimonials */}
       <section className="container-page py-20" aria-labelledby="testimonials-heading">

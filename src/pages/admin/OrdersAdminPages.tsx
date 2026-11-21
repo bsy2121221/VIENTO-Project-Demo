@@ -196,6 +196,7 @@ export function OrderDetailAdminPage() {
                         <div>
                           <p className="font-medium text-navy-900">{i.name}</p>
                           <p className="font-mono text-xs text-slate-500">{i.sku}</p>
+                          {i.sellerName && <p className="text-xs text-slate-500">Seller: {i.sellerName}</p>}
                         </div>
                       </div>
                     </td>

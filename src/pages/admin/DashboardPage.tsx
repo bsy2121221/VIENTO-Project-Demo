@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, IndianRupee, Package, ShoppingCart, TrendingUp } from 'lucide-react'
+import { AlertTriangle, ArrowRight, IndianRupee, LayoutGrid, Package, ShoppingCart, Store, TrendingUp } from 'lucide-react'
 import { AdminPageHeader } from '@/components/layout/AdminLayout'
 import SalesChart, { type MonthPoint } from '@/components/admin/SalesChart'
 import { ErrorState, OrderStatusBadge, PageLoader, PaymentBadge, ProductImage, StockBadge, stockLevel } from '@/components/ui'
@@ -9,7 +9,7 @@ import { MOCK_MONTHLY_REVENUE } from '@/data/seed'
 import { cn, formatDate, formatPrice } from '@/lib/format'
 
 export default function DashboardPage() {
-  const { products, orders, loading, error, reload } = useStore()
+  const { products, orders, sellers, categories, loading, error, reload } = useStore()
 
   const stats = useMemo(() => {
     const revenueOrders = orders.filter((o) => o.paymentStatus !== 'Refunded' && o.paymentStatus !== 'Failed')
@@ -35,18 +35,49 @@ export default function DashboardPage() {
   if (error) return <ErrorState message={error} onRetry={reload} />
   if (loading) return <PageLoader label="Loading dashboard…" />
 
+  const pendingSellers = sellers.filter((s) => s.status === 'pending').length
   const tiles = [
     { label: 'Total products', value: String(products.length), sub: `${products.filter((p) => p.isActive).length} active in store`, icon: Package, to: '/admin/products' },
     { label: 'Total orders', value: String(orders.length), sub: `${stats.pending} awaiting delivery`, icon: ShoppingCart, to: '/admin/orders' },
     { label: 'Demo revenue', value: formatPrice(stats.revenue), sub: `Avg. order ${formatPrice(stats.avgOrder)}`, icon: IndianRupee, to: '/admin/orders' },
+    {
+      label: 'Active sellers',
+      value: String(sellers.filter((s) => s.status === 'approved').length),
+      sub: pendingSellers ? `${pendingSellers} application${pendingSellers === 1 ? '' : 's'} to review` : 'No pending applications',
+      icon: Store,
+      to: '/admin/sellers',
+      warn: pendingSellers > 0,
+    },
+    {
+      label: 'Categories',
+      value: String(categories.filter((c) => c.isActive).length),
+      sub: `${categories.filter((c) => c.isActive && products.some((p) => p.categoryId === c.id)).length} with products listed`,
+      icon: LayoutGrid,
+      to: '/admin/categories',
+    },
     { label: 'Low-stock products', value: String(stats.lowStock.length), sub: stats.lowStock.length ? 'Needs restocking' : 'All stock healthy', icon: AlertTriangle, to: '/admin/inventory', warn: stats.lowStock.length > 0 },
   ]
 
   return (
     <>
-      <AdminPageHeader title="Dashboard" description="Overview of the VIENTo demo store. All figures are sample data." />
+      <AdminPageHeader title="Dashboard" description="Overview of the VIENTo marketplace demo. All figures are sample data." />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {pendingSellers > 0 && (
+        <Link to="/admin/sellers" className="mb-4 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900 transition hover:bg-amber-100">
+          <Store className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
+          <span className="flex-1">
+            <strong>
+              {pendingSellers} seller application{pendingSellers === 1 ? '' : 's'}
+            </strong>{' '}
+            waiting for review.
+          </span>
+          <span className="inline-flex items-center gap-1 font-semibold">
+            Review <ArrowRight className="h-4 w-4" aria-hidden />
+          </span>
+        </Link>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {tiles.map((t) => (
           <Link key={t.label} to={t.to} className="card group p-5 transition hover:border-navy-200 hover:shadow-md">
             <div className="flex items-center justify-between">

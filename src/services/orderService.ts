@@ -28,13 +28,15 @@ export const orderService = {
     await latency(900)
     if (request.items.length === 0) throw new ApiError('Your cart is empty.')
     const products = db.getProducts()
+    const sellers = db.getSellers()
 
     const items = request.items.map((line) => {
       const product = products.find((p) => p.id === line.productId)
-      if (!product || !product.isActive) throw new ApiError('One of the products in your cart is no longer available.', 409)
+      const seller = sellers.find((s) => s.id === product?.sellerId)
+      if (!product || !product.isActive || seller?.status !== 'approved') throw new ApiError('One of the products in your cart is no longer available.', 409)
       if (line.quantity > product.stock)
         throw new ApiError(`Only ${product.stock} unit(s) of ${product.name} are available.`, 409)
-      return { productId: product.id, name: product.name, sku: product.sku, image: product.images[0] ?? '', unitPrice: product.price, quantity: line.quantity }
+      return { productId: product.id, name: product.name, sku: product.sku, image: product.images[0] ?? '', unitPrice: product.price, quantity: line.quantity, sellerId: seller.id, sellerName: seller.shopName }
     })
 
     // Reduce demo inventory.

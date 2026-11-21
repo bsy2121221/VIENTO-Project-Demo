@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, LogIn, LogOut, Mail, MapPin, Menu, Phone, Receipt, Search, ShieldCheck, ShoppingBag, Truck, User, UserPlus, X } from 'lucide-react'
+import { ChevronDown, LogIn, LogOut, Mail, MapPin, Menu, Phone, Receipt, Search, ShieldCheck, ShoppingBag, Store, Truck, User, UserPlus, X } from 'lucide-react'
 import { Logo } from '@/components/ui'
 import { useCart } from '@/context/CartContext'
 import { useCustomerAuth } from '@/context/CustomerAuthContext'
 import { useToast } from '@/context/ToastContext'
-import { CATEGORIES, DEPARTMENTS } from '@/data/seed'
+import { CategoryIcon, tint } from '@/components/marketplace'
+import { useCatalog } from '@/context/StoreContext'
 import { cn } from '@/lib/format'
 
-const ANNOUNCEMENTS = ['Free shipping on orders above ₹2,000', 'Cash on delivery available', '7-day easy returns', '1-year guarantee on all machines', 'New: handcrafted Home Decoration range']
+const ANNOUNCEMENTS = ['Free shipping on orders above ₹2,000', 'Cash on delivery available', '7-day easy returns', 'Now open for sellers: list your products on VIENTo', 'Shop 10+ categories from trusted sellers']
 
 const NAV = [
   { to: '/about', label: 'About Us' },
@@ -138,8 +139,37 @@ export function ScrollToTop() {
   return null
 }
 
+/** Multicolour strip of every visible category, shown under the main header row. */
+function CategoryBar() {
+  const { categories } = useCatalog()
+  const location = useLocation()
+  if (categories.length === 0) return null
+  return (
+    <nav aria-label="Categories" className="border-t border-slate-100 bg-white">
+      <div className="container-page no-scrollbar flex gap-1 overflow-x-auto py-1.5">
+        {categories.map((c) => {
+          const active = location.pathname === `/collections/${c.id}`
+          return (
+            <Link
+              key={c.id}
+              to={`/collections/${c.id}`}
+              aria-current={active ? 'page' : undefined}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap text-slate-700 transition hover:bg-[var(--c-bg)] hover:text-[var(--c)]"
+              style={{ ['--c' as string]: c.color, ['--c-bg' as string]: tint(c.color, 0.1), ...(active ? { backgroundColor: tint(c.color, 0.12), color: c.color } : {}) }}
+            >
+              <CategoryIcon category={c} className="h-4 w-4" />
+              {c.name}
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
+  )
+}
+
 function Header() {
   const { count } = useCart()
+  const { categories } = useCatalog()
   const [open, setOpen] = useState(false)
   const [exploreOpen, setExploreOpen] = useState(false)
   const [mobileExploreOpen, setMobileExploreOpen] = useState(false)
@@ -164,18 +194,18 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-      <div className="flex h-9 items-center overflow-hidden bg-navy-950 text-[13px] text-navy-100">
+      <div className="bg-rainbow flex h-9 items-center overflow-hidden text-[13px] font-medium text-white">
         <p className="sr-only">Client demo: prices, stock and orders on this site are sample data. {ANNOUNCEMENTS.join('. ')}.</p>
         <div className="animate-marquee flex w-max shrink-0 hover:[animation-play-state:paused]" aria-hidden>
           {[0, 1].map((copy) => (
             <div key={copy} className="flex shrink-0 items-center">
               <span className="flex items-center px-6">
-                <span className="demo-badge mr-2 border-gold-400/40 bg-gold-400/10 text-gold-300">Client demo</span>
+                <span className="demo-badge mr-2 border-white/40 bg-white/15 text-white">Client demo</span>
                 Prices, stock and orders are sample data
               </span>
               {ANNOUNCEMENTS.map((a) => (
                 <span key={a} className="flex items-center gap-6 px-6 whitespace-nowrap">
-                  <span className="text-gold-300">✦</span> {a}
+                  <span className="text-white/70">✦</span> {a}
                 </span>
               ))}
             </div>
@@ -218,21 +248,27 @@ function Header() {
               role="menu"
               aria-label="Explore categories"
               className={cn(
-                'absolute top-full left-0 z-40 min-w-[12rem] origin-top pt-2 transition duration-200',
+                'absolute top-full left-0 z-40 w-[34rem] origin-top pt-2 transition duration-200',
                 exploreOpen ? 'visible scale-100 opacity-100' : 'invisible pointer-events-none scale-95 opacity-0',
               )}
             >
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-navy-900/10">
-                {DEPARTMENTS.map((d) => (
+              <div className="grid grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-navy-900/10">
+                {categories.map((c) => (
                   <Link
-                    key={d.id}
-                    to={`/collections/${d.id}`}
+                    key={c.id}
+                    to={`/collections/${c.id}`}
                     role="menuitem"
-                    className="block px-4 py-2.5 text-sm font-medium text-navy-900 transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-navy-900 transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
                   >
-                    {d.name}
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: tint(c.color, 0.14), color: c.color }}>
+                      <CategoryIcon category={c} className="h-4 w-4" />
+                    </span>
+                    {c.name}
                   </Link>
                 ))}
+                <Link to="/sell" role="menuitem" className="bg-rainbow col-span-2 mt-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-white">
+                  <Store className="h-4 w-4" aria-hidden /> Sell your products on VIENTo
+                </Link>
               </div>
             </div>
           </div>
@@ -252,6 +288,9 @@ function Header() {
           </div>
         </form>
         <div className="ml-auto flex items-center gap-1 md:ml-0">
+          <Link to="/sell" className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-fuchsia-700 transition hover:bg-fuchsia-50 xl:inline-flex">
+            <Store className="h-4 w-4" aria-hidden /> Become a Seller
+          </Link>
           <AccountMenu />
           <Link to="/cart" className="relative rounded-full p-2.5 text-navy-900 transition hover:bg-navy-50" aria-label={`Cart, ${count} item${count === 1 ? '' : 's'}`}>
             <ShoppingBag className="h-5 w-5" />
@@ -292,9 +331,12 @@ function Header() {
               </button>
               {mobileExploreOpen && (
                 <div className="mt-1 space-y-1 border-l border-slate-200 pl-3 ml-3">
-                  {DEPARTMENTS.map((d) => (
-                    <Link key={d.id} to={`/collections/${d.id}`} className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                      {d.name}
+                  {categories.map((c) => (
+                    <Link key={c.id} to={`/collections/${c.id}`} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                      <span style={{ color: c.color }}>
+                        <CategoryIcon category={c} className="h-4 w-4" />
+                      </span>
+                      {c.name}
                     </Link>
                   ))}
                 </div>
@@ -305,20 +347,25 @@ function Header() {
                 {n.label}
               </NavLink>
             ))}
+            <Link to="/sell" className="bg-rainbow mt-2 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 font-bold text-white">
+              <Store className="h-4 w-4" aria-hidden /> Become a Seller
+            </Link>
           </div>
         </div>
       )}
+      <CategoryBar />
     </header>
   )
 }
 
 function Footer() {
+  const { categories } = useCatalog()
   return (
     <footer className="mt-24 bg-navy-950 text-navy-200">
       <div className="container-page grid gap-10 py-16 sm:grid-cols-2 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <Logo light />
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-navy-300">Poly sealing machines, impulse and band sealers, and genuine spare parts for businesses that care how their products are packed.</p>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-navy-300">A growing marketplace for home, kitchen, fashion, tools and more, from VIENTo and trusted sellers across India.</p>
           <div className="mt-6 flex flex-wrap gap-4 text-xs text-navy-300">
             <span className="inline-flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-gold-300" aria-hidden /> 1-year guarantee
@@ -331,13 +378,27 @@ function Footer() {
         <div className="lg:col-span-2">
           <h3 className="text-sm font-semibold text-white">Shop</h3>
           <ul className="mt-4 space-y-2.5 text-sm">
-            {CATEGORIES.map((c) => (
+            {categories.slice(0, 8).map((c) => (
               <li key={c.id}>
-                <Link to={`/products?category=${c.id}`} className="hover:text-gold-300">
+                <Link to={`/collections/${c.id}`} className="inline-flex items-center gap-2 hover:text-white">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} aria-hidden />
                   {c.name}
                 </Link>
               </li>
             ))}
+            <li>
+              <Link to="/products" className="font-semibold text-gold-300 hover:text-gold-200">
+                All products →
+              </Link>
+            </li>
+          </ul>
+          <h3 className="mt-8 text-sm font-semibold text-white">Sell with us</h3>
+          <ul className="mt-4 space-y-2.5 text-sm">
+            <li>
+              <Link to="/sell" className="hover:text-gold-300">
+                Become a Seller
+              </Link>
+            </li>
           </ul>
         </div>
         <div className="lg:col-span-2">

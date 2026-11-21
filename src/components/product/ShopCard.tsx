@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
 import type { Product } from '@/types'
-import { CATEGORIES } from '@/data/seed'
+import { CategoryLabel } from '@/components/marketplace'
+import { useLookups } from '@/context/StoreContext'
 import { cn, formatPrice } from '@/lib/format'
 import { ProductImage } from '@/components/ui'
 import { useAddToCart } from './ProductCard'
@@ -9,7 +10,8 @@ import { useAddToCart } from './ProductCard'
 /** Minimal, image-first product card used on the homepage: discount badge, hover image swap, full-width Add to cart. */
 export default function ShopCard({ product, className }: { product: Product; className?: string }) {
   const addToCart = useAddToCart()
-  const category = CATEGORIES.find((c) => c.id === product.categoryId)
+  const lookups = useLookups()
+  const category = lookups.category(product.categoryId)
   const out = product.stock <= 0
   const low = !out && product.stock <= product.lowStockThreshold
   const discount = product.compareAtPrice ? Math.round((1 - product.price / product.compareAtPrice) * 100) : 0
@@ -27,7 +29,7 @@ export default function ShopCard({ product, className }: { product: Product; cla
         </div>
       </Link>
       <div className="flex flex-1 flex-col pt-4">
-        <p className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">{category?.name}</p>
+        <CategoryLabel category={category} />
         <h3 className="mt-1 line-clamp-2 text-[15px] leading-snug font-semibold">
           <Link to={`/products/${product.slug}`} className="hover:text-navy-600">
             {product.name}

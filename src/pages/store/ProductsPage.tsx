@@ -4,7 +4,7 @@ import { PackageSearch, Search, X } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { Breadcrumbs, EmptyState, ErrorState, SkeletonCard } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
-import { CATEGORIES } from '@/data/seed'
+import { CategoryChip } from '@/components/marketplace'
 import { cn } from '@/lib/format'
 
 const SORTS = {
@@ -17,10 +17,11 @@ const SORTS = {
 type SortKey = keyof typeof SORTS
 
 export default function ProductsPage() {
-  const { products, loading, error, reload } = useCatalog()
+  const { products, categories, sellers, loading, error, reload } = useCatalog()
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const category = params.get('category') ?? 'all'
+  const sellerFilter = params.get('seller') ?? 'all'
   const sort = (params.get('sort') as SortKey) in SORTS ? (params.get('sort') as SortKey) : 'featured'
   const inStockOnly = params.get('stock') === 'in'
   // Local state keeps typing responsive; the URL is updated after a short pause.
@@ -49,8 +50,9 @@ export default function ProductsPage() {
     const list = products.filter(
       (p) =>
         (category === 'all' || p.categoryId === category) &&
+        (sellerFilter === 'all' || p.sellerId === sellerFilter) &&
         (!inStockOnly || p.stock > 0) &&
-        (!term || p.name.toLowerCase().includes(term) || p.shortDescription.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term)),
+        (!term || p.name.toLowerCase().includes(term) || p.shortDescription.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term) || (sellers.find((x) => x.id === p.sellerId)?.shopName.toLowerCase().includes(term) ?? false)),
     )
     const sorted = [...list]
     switch (sort) {
@@ -70,18 +72,21 @@ export default function ProductsPage() {
         sorted.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
     }
     return sorted
-  }, [products, search, category, sort, inStockOnly])
+  }, [products, sellers, search, category, sellerFilter, sort, inStockOnly])
 
-  const activeCategory = CATEGORIES.find((c) => c.id === category)
-  const hasFilters = search || category !== 'all' || inStockOnly
+  const activeCategory = categories.find((c) => c.id === category)
+  const activeSeller = sellers.find((s) => s.id === sellerFilter)
+  const hasFilters = search || category !== 'all' || sellerFilter !== 'all' || inStockOnly
+  // Chips only for categories that currently have products, so shoppers never land on an empty chip.
+  const stockedCategories = categories.filter((c) => products.some((p) => p.categoryId === c.id))
 
   return (
     <div className="bg-slate-50/60">
       <div className="border-b border-slate-200 bg-white">
         <div className="container-page py-10">
           <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Shop' }]} />
-          <h1 className="mt-4 text-3xl font-extrabold sm:text-4xl">{activeCategory?.name ?? 'All products'}</h1>
-          <p className="mt-2 max-w-2xl text-slate-600">{activeCategory?.description ?? 'Sealing machines, spare parts and accessories for every packing need. All prices and stock levels shown are demo values.'}</p>
+          <h1 className="mt-4 text-3xl font-extrabold sm:text-4xl">{activeCategory?.name ?? (activeSeller ? activeSeller.shopName : 'All products')}</h1>
+          <p className="mt-2 max-w-2xl text-slate-600">{activeCategory?.description ?? (activeSeller ? activeSeller.description : 'Shop every category from every seller on VIENTo. All prices and stock levels shown are demo values.')}</p>
         </div>
       </div>
 
@@ -102,13 +107,28 @@ export default function ProductsPage() {
               </label>
               <select id="category-filter" value={category} onChange={(e) => update('category', e.target.value)} className="input pr-8">
                 <option value="all">All categories</option>
-                {CATEGORIES.map((c) => (
+                {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
               </select>
             </div>
+            {sellers.length > 1 && (
+              <div>
+                <label htmlFor="seller-filter" className="sr-only">
+                  Filter by seller
+                </label>
+                <select id="seller-filter" value={sellerFilter} onChange={(e) => update('seller', e.target.value)} className="input pr-8">
+                  <option value="all">All sellers</option>
+                  {sellers.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.shopName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label htmlFor="sort" className="sr-only">
                 Sort products
@@ -129,16 +149,17 @@ export default function ProductsPage() {
         </div>
 
         {/* Category chips */}
-        <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Quick category filter">
-          {[{ id: 'all', name: 'All' }, ...CATEGORIES].map((c) => (
-            <button
-              key={c.id}
-              onClick={() => update('category', c.id)}
-              aria-pressed={category === c.id}
-              className={cn('rounded-full border px-4 py-1.5 text-sm font-medium transition', category === c.id ? 'border-navy-900 bg-navy-900 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-navy-400')}
-            >
-              {c.name}
-            </button>
+        <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap" role="group" aria-label="Quick category filter">
+          <button
+            type="button"
+            onClick={() => update('category', 'all')}
+            aria-pressed={category === 'all'}
+            className={cn('shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition', category === 'all' ? 'border-navy-900 bg-navy-900 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-navy-400')}
+          >
+            All
+          </button>
+          {stockedCategories.map((c) => (
+            <CategoryChip key={c.id} category={c} active={category === c.id} onClick={() => update('category', c.id)} />
           ))}
         </div>
 

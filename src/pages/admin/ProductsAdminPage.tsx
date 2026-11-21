@@ -6,7 +6,7 @@ import ProductFormModal from '@/components/admin/ProductFormModal'
 import { ConfirmDialog, EmptyState, ErrorState, PageLoader, ProductImage, StockBadge } from '@/components/ui'
 import { useStore } from '@/context/StoreContext'
 import { useToast } from '@/context/ToastContext'
-import { CATEGORIES } from '@/data/seed'
+import { CategoryLabel } from '@/components/marketplace'
 import type { Product, ProductInput } from '@/types'
 import { cn, formatPrice } from '@/lib/format'
 
@@ -42,10 +42,11 @@ export function ActiveToggle({ product }: { product: Product }) {
 }
 
 export default function ProductsAdminPage() {
-  const { products, loading, error, reload, createProduct, updateProduct, deleteProduct } = useStore()
+  const { products, categories, sellers, loading, error, reload, createProduct, updateProduct, deleteProduct } = useStore()
   const toast = useToast()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
+  const [seller, setSeller] = useState('all')
   const [status, setStatus] = useState<'all' | 'active' | 'inactive'>('all')
   const [editing, setEditing] = useState<Product | undefined>()
   const [formOpen, setFormOpen] = useState(false)
@@ -57,10 +58,11 @@ export default function ProductsAdminPage() {
     return products.filter(
       (p) =>
         (category === 'all' || p.categoryId === category) &&
+        (seller === 'all' || p.sellerId === seller) &&
         (status === 'all' || (status === 'active' ? p.isActive : !p.isActive)) &&
         (!t || p.name.toLowerCase().includes(t) || p.sku.toLowerCase().includes(t)),
     )
-  }, [products, query, category, status])
+  }, [products, query, category, seller, status])
 
   if (error) return <ErrorState message={error} onRetry={reload} />
   if (loading) return <PageLoader label="Loading products…" />
@@ -110,9 +112,20 @@ export default function ProductsAdminPage() {
         </label>
         <select id="admin-category" className="input sm:w-48" value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="all">All categories</option>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
+            </option>
+          ))}
+        </select>
+        <label htmlFor="admin-seller" className="sr-only">
+          Seller
+        </label>
+        <select id="admin-seller" className="input sm:w-52" value={seller} onChange={(e) => setSeller(e.target.value)}>
+          <option value="all">All sellers</option>
+          {sellers.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.shopName}
             </option>
           ))}
         </select>
@@ -144,7 +157,7 @@ export default function ProductsAdminPage() {
               <thead className="bg-slate-50 text-left text-xs text-slate-500">
                 <tr>
                   <th className="px-5 py-3 font-medium">Product</th>
-                  <th className="px-5 py-3 font-medium">Category</th>
+                  <th className="px-5 py-3 font-medium">Category / seller</th>
                   <th className="px-5 py-3 text-right font-medium">Price</th>
                   <th className="px-5 py-3 font-medium">Stock</th>
                   <th className="px-5 py-3 font-medium">Status</th>
@@ -165,7 +178,10 @@ export default function ProductsAdminPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 whitespace-nowrap text-slate-600">{CATEGORIES.find((c) => c.id === p.categoryId)?.name}</td>
+                    <td className="px-5 py-3 whitespace-nowrap">
+                      <CategoryLabel category={categories.find((c) => c.id === p.categoryId)} />
+                      <p className="mt-0.5 text-xs text-slate-500">{sellers.find((s) => s.id === p.sellerId)?.shopName ?? 'Unknown seller'}</p>
+                    </td>
                     <td className="px-5 py-3 text-right font-semibold whitespace-nowrap tabular-nums text-navy-900">{formatPrice(p.price)}</td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       <span className="mr-2 font-semibold tabular-nums">{p.stock}</span>

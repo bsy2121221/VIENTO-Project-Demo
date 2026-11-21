@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, ShoppingCart } from 'lucide-react'
 import type { Product } from '@/types'
-import { CATEGORIES } from '@/data/seed'
+import { CategoryLabel } from '@/components/marketplace'
+import { useLookups } from '@/context/StoreContext'
 import { formatPrice } from '@/lib/format'
 import { ProductImage, StockBadge } from '@/components/ui'
 import { useCart } from '@/context/CartContext'
@@ -21,7 +22,8 @@ export function useAddToCart() {
 /** `showShopNow` adds a full-width "Shop Now" link to the product page below the price row. */
 export default function ProductCard({ product, showShopNow = false }: { product: Product; showShopNow?: boolean }) {
   const addToCart = useAddToCart()
-  const category = CATEGORIES.find((c) => c.id === product.categoryId)
+  const lookups = useLookups()
+  const category = lookups.category(product.categoryId)
   const out = product.stock <= 0
   const discount = product.compareAtPrice ? Math.round((1 - product.price / product.compareAtPrice) * 100) : 0
 
@@ -33,7 +35,7 @@ export default function ProductCard({ product, showShopNow = false }: { product:
         {out && <span className="absolute inset-0 flex items-center justify-center bg-white/55 text-sm font-semibold text-navy-900 backdrop-blur-[1px]">Out of stock</span>}
       </Link>
       <div className="flex flex-1 flex-col p-5">
-        <p className="text-xs font-medium tracking-wide text-gold-600 uppercase">{category?.name}</p>
+        <CategoryLabel category={category} />
         <h3 className="mt-1.5 line-clamp-2 text-[15px] leading-snug font-bold">
           <Link to={`/products/${product.slug}`} className="hover:text-navy-600">
             {product.name}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Boxes, ExternalLink, LayoutDashboard, LogOut, Menu, Package, RotateCcw, ShoppingCart, X } from 'lucide-react'
+import { Boxes, ExternalLink, LayoutDashboard, LayoutGrid, LogOut, Menu, Package, RotateCcw, ShoppingCart, Store, X } from 'lucide-react'
 import { ConfirmDialog, Logo } from '@/components/ui'
 import { useAdminAuth } from '@/context/AdminAuthContext'
 import { useStore } from '@/context/StoreContext'
@@ -17,7 +17,7 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 
 export default function AdminLayout() {
   const { session, logout } = useAdminAuth()
-  const { products, orders, resetDemo } = useStore()
+  const { products, orders, sellers, resetDemo } = useStore()
   const toast = useToast()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -30,10 +30,13 @@ export default function AdminLayout() {
 
   const lowStock = products.filter((p) => stockLevel(p) !== 'in').length
   const openOrders = orders.filter((o) => o.status !== 'Delivered').length
+  const pendingSellers = sellers.filter((s) => s.status === 'pending').length
 
   const NAV = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/admin/products', label: 'Products', icon: Package },
+    { to: '/admin/categories', label: 'Categories', icon: LayoutGrid },
+    { to: '/admin/sellers', label: 'Sellers', icon: Store, badge: pendingSellers || undefined },
     { to: '/admin/inventory', label: 'Inventory', icon: Boxes, badge: lowStock || undefined },
     { to: '/admin/orders', label: 'Orders', icon: ShoppingCart, badge: openOrders || undefined },
   ]
@@ -43,7 +46,7 @@ export default function AdminLayout() {
     await resetDemo()
     setResetting(false)
     setConfirmReset(false)
-    toast.success('Demo data restored', 'Products, inventory, orders and carts are back to their original state.')
+    toast.success('Demo data restored', 'Products, categories, sellers, orders and carts are back to their original state.')
   }
 
   const sidebar = (
@@ -123,7 +126,7 @@ export default function AdminLayout() {
         title="Reset all demo data?"
         message={
           <>
-            This restores the original sample products, inventory and orders, and clears the customer cart and order history in this browser. Use it before presenting the demo to a new client.
+            This restores the original sample products, categories, sellers, inventory and orders, and clears the customer cart and order history in this browser. Use it before presenting the demo to a new client.
           </>
         }
         confirmLabel="Reset demo data"

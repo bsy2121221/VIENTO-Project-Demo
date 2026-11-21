@@ -1,13 +1,18 @@
 // localStorage-backed "database" for the demo. In production this file is removed and
 // each service method calls the ASP.NET Core Web API endpoint noted at the top of its file.
-import type { Order, Product } from '@/types'
-import { SEED_PRODUCTS, createSeedOrders } from '@/data/seed'
+import type { Category, Order, Product, Seller } from '@/types'
+import { OFFICIAL_SELLER_ID, SEED_CATEGORIES, SEED_PRODUCTS, SEED_SELLERS, createSeedOrders } from '@/data/seed'
 
 const KEYS = {
   // Bumped to v4 when categories were consolidated into three ranges and new products were added, so existing browsers pick up the new catalogue.
   products: 'viento.demo.v4.products',
   orders: 'viento.demo.v1.orders',
+  categories: 'viento.demo.v1.categories',
+  sellers: 'viento.demo.v1.sellers',
 } as const
+
+/** Every key the demo "database" owns, so other tabs can tell when to resync. */
+export const DB_KEYS: readonly string[] = Object.values(KEYS)
 
 export class ApiError extends Error {
   constructor(
@@ -41,7 +46,8 @@ const clone = <T>(value: T): T => structuredClone(value)
 export const db = {
   getProducts(): Product[] {
     const stored = read<Product[]>(KEYS.products)
-    if (stored) return stored
+    // Products saved before the marketplace upgrade have no seller; they belong to the official store.
+    if (stored) return stored.map((p) => (p.sellerId ? p : { ...p, sellerId: OFFICIAL_SELLER_ID }))
     const seeded = clone(SEED_PRODUCTS)
     write(KEYS.products, seeded)
     return seeded
@@ -59,9 +65,31 @@ export const db = {
   saveOrders(orders: Order[]) {
     write(KEYS.orders, orders)
   },
+  getCategories(): Category[] {
+    const stored = read<Category[]>(KEYS.categories)
+    if (stored) return stored
+    const seeded = clone(SEED_CATEGORIES)
+    write(KEYS.categories, seeded)
+    return seeded
+  },
+  saveCategories(categories: Category[]) {
+    write(KEYS.categories, categories)
+  },
+  getSellers(): Seller[] {
+    const stored = read<Seller[]>(KEYS.sellers)
+    if (stored) return stored
+    const seeded = clone(SEED_SELLERS)
+    write(KEYS.sellers, seeded)
+    return seeded
+  },
+  saveSellers(sellers: Seller[]) {
+    write(KEYS.sellers, sellers)
+  },
   reset() {
     write(KEYS.products, clone(SEED_PRODUCTS))
     write(KEYS.orders, createSeedOrders())
+    write(KEYS.categories, clone(SEED_CATEGORIES))
+    write(KEYS.sellers, clone(SEED_SELLERS))
   },
 }
 
@@ -69,3 +97,4 @@ export const db = {
 export const latency = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const newId = (prefix: string) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+

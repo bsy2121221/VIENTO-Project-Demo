@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { LayoutGrid, List, PackageSearch, SlidersHorizontal } from 'lucide-react'
+import { LayoutGrid, List, SlidersHorizontal, Store } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { Breadcrumbs, EmptyState, ErrorState, SkeletonCard } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
-import { CATEGORIES, DEPARTMENTS } from '@/data/seed'
+import { CategoryBubble, CategoryIcon, tint } from '@/components/marketplace'
 import { cn } from '@/lib/format'
 
 const SORTS = {
@@ -18,27 +18,20 @@ type SortKey = keyof typeof SORTS
 
 export default function CollectionPage() {
   const { slug } = useParams<{ slug: string }>()
-  const department = DEPARTMENTS.find((d) => d.id === slug)
-  const { products, loading, error, reload } = useCatalog()
+  const { products, categories, loading, error, reload } = useCatalog()
+  const department = categories.find((c) => c.id === slug)
   const [params, setParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('grid')
 
   const sort = (params.get('sort') as SortKey) in SORTS ? (params.get('sort') as SortKey) : 'featured'
   const inStockOnly = params.get('stock') === 'in'
-  const subcategory = params.get('category') ?? 'all'
-
-  const categoryOptions = useMemo(
-    () => (department ? CATEGORIES.filter((c) => department.categoryIds.includes(c.id)) : []),
-    [department],
-  )
 
   const results = useMemo(() => {
     if (!department) return []
     const list = products.filter(
       (p) =>
-        department.categoryIds.includes(p.categoryId) &&
-        (subcategory === 'all' || p.categoryId === subcategory) &&
+        p.categoryId === department.id &&
         (!inStockOnly || p.stock > 0),
     )
     const sorted = [...list]
@@ -59,9 +52,11 @@ export default function CollectionPage() {
         sorted.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
     }
     return sorted
-  }, [products, department, subcategory, sort, inStockOnly])
+  }, [products, department, sort, inStockOnly])
 
-  if (!department) return <Navigate to="/" replace />
+  // Categories load asynchronously; only redirect once we know the slug is genuinely unknown or hidden.
+  if (loading && !department) return null
+  if (!department) return <Navigate to="/products" replace />
 
   const update = (key: string, value: string | null) => {
     const next = new URLSearchParams(window.location.search)
@@ -70,16 +65,21 @@ export default function CollectionPage() {
     setParams(next, { replace: true })
   }
 
-  const comingSoon = !loading && !products.some((p) => department.categoryIds.includes(p.categoryId))
-  const other = DEPARTMENTS.find((d) => d.id !== department.id && products.some((p) => d.categoryIds.includes(p.categoryId)))
+  const comingSoon = !loading && !products.some((p) => p.categoryId === department.id)
+  const others = categories.filter((c) => c.id !== department.id && products.some((p) => p.categoryId === c.id)).slice(0, 4)
 
   return (
     <div className="bg-white">
-      <div className="border-b border-slate-200">
+      <div className="border-b border-slate-200" style={{ background: `linear-gradient(120deg, ${tint(department.color, 0.14)} 0%, ${tint(department.color, 0.03)} 60%, #fff 100%)` }}>
         <div className="container-page py-8">
-          <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: department.name }]} />
-          <h1 className="mt-4 text-3xl font-extrabold sm:text-4xl">{department.name}</h1>
-          <p className="mt-2 max-w-2xl text-slate-600">{department.description}</p>
+          <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Shop', to: '/products' }, { label: department.name }]} />
+          <div className="mt-4 flex items-center gap-4">
+            <CategoryBubble category={department} size="lg" />
+            <div>
+              <h1 className="text-3xl font-extrabold sm:text-4xl">{department.name}</h1>
+              <p className="mt-2 max-w-2xl text-slate-600">{department.description}</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -134,26 +134,11 @@ export default function CollectionPage() {
 
         {filtersOpen && (
           <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-            {categoryOptions.length > 1 && (
-              <div>
-                <label htmlFor="collection-category" className="mb-1 block text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Category
-                </label>
-                <select id="collection-category" value={subcategory} onChange={(e) => update('category', e.target.value)} className="input pr-8">
-                  <option value="all">All in {department.name}</option>
-                  {categoryOptions.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
             <label className="inline-flex cursor-pointer items-center gap-2 self-end pb-2 text-sm font-medium text-navy-900">
               <input type="checkbox" checked={inStockOnly} onChange={(e) => update('stock', e.target.checked ? 'in' : null)} className="h-4 w-4 rounded border-slate-300 accent-navy-900" />
               In stock only
             </label>
-            {(subcategory !== 'all' || inStockOnly) && (
+            {inStockOnly && (
               <button type="button" className="self-end pb-2 text-sm font-semibold text-navy-700 hover:text-navy-900" onClick={() => setParams({}, { replace: true })}>
                 Clear filters
               </button>
@@ -171,20 +156,47 @@ export default function CollectionPage() {
               ))}
             </div>
           ) : results.length === 0 ? (
-            <div className="card">
-              <EmptyState
-                icon={<PackageSearch className="h-8 w-8" />}
-                title={comingSoon ? 'Coming soon' : 'No products in this collection'}
-                description={comingSoon ? `We are curating the ${department.name} range. Check back soon, or browse our other collections.` : 'Try clearing filters or browse another collection.'}
-                action={
-                  other ? (
-                    <Link to={`/collections/${other.id}`} className="btn btn-primary">
-                      Browse {other.name}
-                    </Link>
-                  ) : undefined
-                }
-              />
-            </div>
+            comingSoon ? (
+              <div className="overflow-hidden rounded-3xl border-2 border-dashed px-6 py-14 text-center" style={{ borderColor: tint(department.color, 0.4), backgroundColor: tint(department.color, 0.05) }}>
+                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-white" style={{ backgroundColor: department.color }}>
+                  <CategoryIcon category={department} className="h-8 w-8" />
+                </span>
+                <h2 className="mt-5 text-2xl font-extrabold">Sellers are onboarding</h2>
+                <p className="mx-auto mt-2 max-w-md text-slate-600">
+                  New {department.name} sellers are joining VIENTo. Check back soon, or list your own {department.name.toLowerCase()} products and reach customers across India.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Link to={`/sell?category=${department.id}`} className="btn rounded-full text-white" style={{ backgroundColor: department.color }}>
+                    <Store className="h-4 w-4" aria-hidden /> Sell {department.name} on VIENTo
+                  </Link>
+                  <Link to="/products" className="btn btn-outline rounded-full">
+                    Shop all products
+                  </Link>
+                </div>
+                {others.length > 0 && (
+                  <div className="mt-8 flex flex-wrap justify-center gap-2">
+                    {others.map((c) => (
+                      <Link key={c.id} to={`/collections/${c.id}`} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300" style={{ color: c.color }}>
+                        <CategoryIcon category={c} className="h-3.5 w-3.5" /> {c.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="card">
+                <EmptyState
+                  icon={<SlidersHorizontal className="h-8 w-8" />}
+                  title="No products match these filters"
+                  description="Try clearing the filters to see everything in this category."
+                  action={
+                    <button type="button" className="btn btn-primary" onClick={() => setParams({}, { replace: true })}>
+                      Clear filters
+                    </button>
+                  }
+                />
+              </div>
+            )
           ) : (
             <div className={cn('grid gap-6', view === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 md:max-w-3xl')}>
               {results.map((p) => (

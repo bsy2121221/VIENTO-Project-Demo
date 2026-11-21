@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { CartItem, Product } from '@/types'
 import { calcShipping } from '@/lib/format'
-import { CART_KEY, DEMO_RESET_EVENT, useStore } from './StoreContext'
+import { CART_KEY, DEMO_RESET_EVENT, useCatalog } from './StoreContext'
 
 export interface CartLine {
   product: Product
@@ -38,7 +38,8 @@ const readCart = (): CartItem[] => {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { products, loading } = useStore()
+  // Only purchasable products: hidden categories and suspended sellers drop out of the cart automatically.
+  const { products, loading } = useCatalog()
   const [items, setItems] = useState<CartItem[]>(readCart)
   const [notice, setNotice] = useState<string | null>(null)
 
