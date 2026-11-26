@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { LayoutGrid, List, SlidersHorizontal, Store } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
+import InfiniteProductGrid, { PRODUCT_GRID } from '@/components/product/InfiniteProductGrid'
 import { Breadcrumbs, EmptyState, ErrorState, SkeletonCard } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
 import { CategoryBubble, CategoryIcon, tint } from '@/components/marketplace'
@@ -95,11 +96,11 @@ export default function CollectionPage() {
 
           <div className="ml-auto flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-slate-600">
-              <span className="whitespace-nowrap">Sort by:</span>
+              <span className="hidden whitespace-nowrap sm:inline">Sort by:</span>
               <select
                 value={sort}
                 onChange={(e) => update('sort', e.target.value)}
-                className="input h-9 min-w-[10rem] border-0 bg-transparent py-1 pr-8 font-medium text-navy-900 shadow-none"
+                className="input h-9 min-w-0 border-0 sm:min-w-[10rem] bg-transparent py-1 pr-8 font-medium text-navy-900 shadow-none"
                 aria-label="Sort products"
               >
                 {Object.entries(SORTS).map(([k, v]) => (
@@ -150,8 +151,8 @@ export default function CollectionPage() {
           {error ? (
             <ErrorState message={error} onRetry={reload} />
           ) : loading ? (
-            <div className={cn('grid gap-6', view === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1')}>
-              {Array.from({ length: 8 }, (_, i) => (
+            <div className={view === 'grid' ? PRODUCT_GRID : 'grid grid-cols-1 gap-6'}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <SkeletonCard key={i} />
               ))}
             </div>
@@ -198,11 +199,12 @@ export default function CollectionPage() {
               </div>
             )
           ) : (
-            <div className={cn('grid gap-6', view === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 md:max-w-3xl')}>
-              {results.map((p) => (
-                <ProductCard key={p.id} product={p} showShopNow />
-              ))}
-            </div>
+            <InfiniteProductGrid
+              products={results}
+              resetKey={`${department.id}|${sort}|${inStockOnly}`}
+              className={view === 'list' ? '!grid-cols-1 gap-6 md:max-w-3xl' : undefined}
+              render={(p) => <ProductCard key={p.id} product={p} showShopNow />}
+            />
           )}
         </div>
       </div>

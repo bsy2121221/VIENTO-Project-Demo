@@ -48,7 +48,7 @@ export default function ProductDetailPage() {
   const inCart = quantityOf(product.id)
   const maxAddable = Math.max(0, product.stock - inCart)
   const out = product.stock <= 0
-  const related = products.filter((p) => p.id !== product.id && (p.categoryId === product.categoryId || p.isFeatured)).slice(0, 4)
+  const related = products.filter((p) => p.id !== product.id && (p.categoryId === product.categoryId || p.isFeatured)).slice(0, 6)
   const discount = product.compareAtPrice ? Math.round((1 - product.price / product.compareAtPrice) * 100) : 0
   const safeQty = Math.min(qty, Math.max(1, maxAddable))
 
@@ -64,7 +64,7 @@ export default function ProductDetailPage() {
     <div className="container-page py-8">
       <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Shop', to: '/products' }, { label: category?.name ?? 'Products', to: `/collections/${product.categoryId}` }, { label: product.name }]} />
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16 2xl:grid-cols-[minmax(0,720px)_1fr]">
         {/* Gallery */}
         <div>
           <div className="card overflow-hidden bg-slate-50">
@@ -215,9 +215,11 @@ export default function ProductDetailPage() {
           <h2 id="related-heading" className="text-2xl font-extrabold">
             Related products
           </h2>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4 2xl:grid-cols-6">
+            {related.map((p, i) => (
+              <div key={p.id} className={i >= 4 ? 'grid max-2xl:hidden' : 'grid'}>
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         </section>

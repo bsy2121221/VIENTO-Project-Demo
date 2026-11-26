@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { BadgeCheck, CheckCircle2, ClipboardList, IndianRupee, MapPin, PackageCheck, PackageSearch, Rocket, Store, Truck, Users } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
+import InfiniteProductGrid, { PRODUCT_GRID } from '@/components/product/InfiniteProductGrid'
 import { CategoryIcon, SellerAvatar, tint } from '@/components/marketplace'
 import { Breadcrumbs, EmptyState, ErrorState, Field, PageLoader, SkeletonCard, Spinner } from '@/components/ui'
 import { useCatalog, useStore } from '@/context/StoreContext'
@@ -330,7 +331,7 @@ export function SellerShopPage() {
 
       <div className="container-page py-8">
         {ownCategories.length > 1 && (
-          <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto" role="group" aria-label="Filter shop by category">
+          <div className="mb-6 flex flex-wrap gap-2" role="group" aria-label="Filter shop by category">
             <button
               type="button"
               onClick={() => setCategory('all')}
@@ -355,7 +356,7 @@ export function SellerShopPage() {
         )}
 
         {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className={PRODUCT_GRID}>
             {Array.from({ length: 4 }, (_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -365,11 +366,7 @@ export function SellerShopPage() {
             <EmptyState icon={<PackageSearch className="h-8 w-8" />} title="No products listed yet" description="This seller is setting up their catalogue. Check back soon." />
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {shown.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <InfiniteProductGrid products={shown} resetKey={category} render={(p) => <ProductCard key={p.id} product={p} />} />
         )}
       </div>
     </div>

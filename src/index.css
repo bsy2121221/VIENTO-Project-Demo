@@ -55,6 +55,8 @@
 }
 
 @layer base {
+  /* `clip` (not `hidden`) stops sideways page scroll without breaking the sticky header. */
+  html, body { overflow-x: clip; }
   html { scroll-behavior: smooth; }
   body {
     @apply bg-white font-sans text-slate-700 antialiased;
@@ -78,7 +80,7 @@
 }
 
 @layer components {
-  .container-page { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .container-page { @apply mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-8 2xl:px-12; }
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all duration-200 select-none

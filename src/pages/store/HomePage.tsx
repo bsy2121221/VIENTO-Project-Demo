@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, BadgePercent, ChevronLeft, ChevronRight, CookingPot, IndianRupee, PackageCheck, Quote, Star, Store, Users } from 'lucide-react'
+import { ArrowRight, BadgePercent, CookingPot, IndianRupee, PackageCheck, Quote, Star, Store, Users } from 'lucide-react'
 import ShopCard from '@/components/product/ShopCard'
+import InfiniteProductGrid from '@/components/product/InfiniteProductGrid'
 import HeroBanner from '@/components/home/HeroBanner'
 import { PowerToolsBanner, PromiseSection, PromoBanners, SeeAllButton, SupportSection, TrustBar } from '@/components/home/HomeSections'
 import { ErrorState } from '@/components/ui'
@@ -22,7 +23,7 @@ const TILES: Array<{ title: string; cta: string; to: string; image: string; cont
 ]
 
 /** Homepage product rows stay short; the full range is one click away via "See all collection". */
-const HOME_LIMIT = 5
+const HOME_LIMIT = 6
 
 type TabId = string
 
@@ -59,17 +60,17 @@ function CategoryStrip({ categories, products }: { categories: Category[]; produ
       <h2 id="category-strip-heading" className="text-center text-xl font-extrabold sm:text-2xl">
         Shop from <span className="bg-rainbow bg-clip-text text-transparent">{categories.length}+ categories</span>
       </h2>
-      <ul className="no-scrollbar -mx-4 mt-6 flex gap-3 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-6 lg:gap-4 lg:overflow-visible lg:px-0">
+      <ul className="mt-6 grid grid-cols-4 gap-x-1 gap-y-3 sm:grid-cols-6 sm:gap-4 2xl:grid-cols-12">
         {categories.map((c) => {
           const count = products.filter((p) => p.categoryId === c.id).length
           return (
-            <li key={c.id} className="w-24 shrink-0 sm:w-28 lg:w-auto">
-              <Link to={`/collections/${c.id}`} className="group flex flex-col items-center gap-2 rounded-2xl p-2 text-center transition hover:-translate-y-1">
+            <li key={c.id} className="min-w-0">
+              <Link to={`/collections/${c.id}`} className="group flex flex-col items-center gap-1.5 rounded-2xl p-1 text-center sm:gap-2 sm:p-2 transition hover:-translate-y-1">
                 <span className="rounded-full p-1 ring-2 ring-transparent transition group-hover:ring-[var(--c)]" style={{ ['--c' as string]: c.color }}>
                   <CategoryBubble category={c} size="lg" />
                 </span>
-                <span className="text-[13px] leading-tight font-bold text-navy-900">{c.name}</span>
-                <span className="text-[11px] font-medium" style={{ color: count ? c.color : undefined }}>
+                <span className="text-[11px] leading-tight font-bold text-navy-900 sm:text-[13px]">{c.name}</span>
+                <span className="hidden text-[11px] font-medium sm:block" style={{ color: count ? c.color : undefined }}>
                   {count ? `${count} product${count === 1 ? '' : 's'}` : <span className="text-slate-400">Coming soon</span>}
                 </span>
               </Link>
@@ -125,41 +126,58 @@ function SellerCta({ sellerCount }: { sellerCount: number }) {
   )
 }
 
-/* ---------- Trending carousel ---------- */
-function TrendingCarousel({ products, loading }: { products: Product[]; loading: boolean }) {
-  const track = useRef<HTMLDivElement>(null)
-  const scroll = (dir: 1 | -1) => track.current?.scrollBy({ left: dir * track.current.clientWidth * 0.85, behavior: 'smooth' })
-  const arrow = 'flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-navy-900 transition hover:border-navy-900 hover:bg-navy-900 hover:text-white'
+/** Home rows hold 6 cards: the 5th appears from 5 columns up, the 6th only on wide monitors. */
+const hideExtra = (i: number) => (i === 4 ? 'max-lg:hidden' : i >= 5 ? 'max-2xl:hidden' : undefined)
 
+/* ---------- Trending grid ---------- */
+function TrendingGrid({ products, loading }: { products: Product[]; loading: boolean }) {
+  // 2 columns on phones, 4 on tablets, 5 on desktop, 6 on wide monitors; extra cards only show where they complete a row.
+  const cell = hideExtra
   return (
-    <section className="py-16" aria-labelledby="trending-heading">
+    <section className="py-12 sm:py-16" aria-labelledby="trending-heading">
       <div className="container-page">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="eyebrow">See it in action</p>
-            <h2 id="trending-heading" className="mt-2 text-2xl font-extrabold sm:text-3xl">
-              Trending right now
-            </h2>
-          </div>
-          <div className="flex gap-2 lg:hidden">
-            <button type="button" className={arrow} onClick={() => scroll(-1)} aria-label="Scroll trending products left">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button type="button" className={arrow} onClick={() => scroll(1)} aria-label="Scroll trending products right">
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-        <div ref={track} className="no-scrollbar -mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto scroll-smooth px-4 sm:scroll-px-6 lg:scroll-px-0 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+        <p className="eyebrow">See it in action</p>
+        <h2 id="trending-heading" className="mt-2 text-2xl font-extrabold sm:text-3xl">
+          Trending right now
+        </h2>
+        <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
           {loading
-            ? Array.from({ length: 5 }, (_, i) => (
-                <div key={i} className="w-[72%] shrink-0 sm:w-[44%] lg:w-[calc((100%-5rem)/5)]">
+            ? Array.from({ length: HOME_LIMIT }, (_, i) => (
+                <div key={i} className={cell(i)}>
                   <ShopCardSkeleton />
                 </div>
               ))
-            : products.map((p) => <ShopCard key={p.id} product={p} className="w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-[calc((100%-5rem)/5)]" />)}
+            : products.map((p, i) => <ShopCard key={p.id} product={p} className={cell(i)} />)}
         </div>
         <SeeAllButton to="/products" />
+      </div>
+    </section>
+  )
+}
+
+/* ---------- "Products for you": endless feed that loads more on scroll ---------- */
+function ProductFeed({ products, loading }: { products: Product[]; loading: boolean }) {
+  return (
+    <section className="container-page py-12 sm:py-16" aria-labelledby="feed-heading">
+      <h2 id="feed-heading" className="text-2xl font-extrabold sm:text-3xl">
+        Products for you
+      </h2>
+      <p className="mt-1 text-sm text-slate-500">Everything on VIENTo. Keep scrolling to see more.</p>
+      <div className="mt-8">
+        {loading ? (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            {Array.from({ length: 12 }, (_, i) => (
+              <ShopCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <InfiniteProductGrid
+            products={products}
+            className="gap-x-3 gap-y-8 sm:gap-x-5"
+            skeleton={<ShopCardSkeleton />}
+            render={(p) => <ShopCard key={p.id} product={p} />}
+          />
+        )}
       </div>
     </section>
   )
@@ -203,7 +221,7 @@ function BestsellerTabs({ products, categories, loading }: { products: Product[]
           <p className="mt-2 text-sm text-slate-500">Popular picks from every category on VIENTo.</p>
         </div>
 
-        <div role="tablist" aria-label="Product collections" className="no-scrollbar mt-8 flex justify-start gap-2 overflow-x-auto sm:justify-center">
+        <div role="tablist" aria-label="Product collections" className="mt-8 flex flex-wrap justify-center gap-2">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -214,7 +232,7 @@ function BestsellerTabs({ products, categories, loading }: { products: Product[]
               aria-controls="bestsellers-panel"
               onClick={() => setActive(t.id)}
               className={cn(
-                'shrink-0 rounded-full border px-5 py-2 text-sm font-semibold transition',
+                'rounded-full border px-3.5 py-1.5 text-xs font-semibold transition sm:px-5 sm:py-2 sm:text-sm',
                 active === t.id ? 'border-navy-900 bg-navy-900 text-white' : 'border-slate-300 bg-white text-navy-900 hover:border-navy-900',
               )}
             >
@@ -225,15 +243,17 @@ function BestsellerTabs({ products, categories, loading }: { products: Product[]
 
         <div id="bestsellers-panel" role="tabpanel" aria-labelledby={`tab-${active}`} className="mt-10">
           {loading ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
               {Array.from({ length: HOME_LIMIT }, (_, i) => (
-                <ShopCardSkeleton key={i} />
+                <div key={i} className={hideExtra(i)}>
+                  <ShopCardSkeleton />
+                </div>
               ))}
             </div>
           ) : list.length ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
               {list.map((p, i) => (
-                <ShopCard key={p.id} product={p} className={i >= 4 ? 'max-lg:hidden' : undefined} />
+                <ShopCard key={p.id} product={p} className={hideExtra(i)} />
               ))}
             </div>
           ) : (
@@ -287,24 +307,24 @@ export default function HomePage() {
             </Link>
           }
         />
-        <div className="no-scrollbar -mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 sm:scroll-px-6 lg:scroll-px-0 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {TILES.map((t) => (
             <Link
               key={t.title}
               to={t.to}
-              className="group relative flex aspect-[3/4] w-[62%] shrink-0 snap-start flex-col justify-end overflow-hidden rounded-2xl bg-navy-900 sm:w-[36%] lg:w-auto"
+              className="group relative flex aspect-[3/4] flex-col justify-end overflow-hidden rounded-2xl bg-navy-900"
             >
               {t.contain && <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,#fbf7ea_0%,#ecd78f_55%,#bf9128_100%)]" aria-hidden />}
               <img
                 src={t.image}
                 alt=""
                 loading="lazy"
-                className={cn('absolute inset-0 h-full w-full transition duration-700 group-hover:scale-105', t.contain ? 'object-contain px-5 pb-24 drop-shadow-[0_16px_18px_rgba(7,20,49,0.35)]' : 'object-cover')}
+                className={cn('absolute inset-0 h-full w-full transition duration-700 group-hover:scale-105', t.contain ? 'object-contain px-4 pb-20 sm:px-5 sm:pb-24 drop-shadow-[0_16px_18px_rgba(7,20,49,0.35)]' : 'object-cover')}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" aria-hidden />
-              <div className="relative p-5">
-                <h3 className="text-lg font-extrabold text-white">{t.title}</h3>
-                <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-navy-900 transition group-hover:bg-gold-300">
+              <div className="relative p-3 sm:p-5">
+                <h3 className="text-base font-extrabold text-white sm:text-lg">{t.title}</h3>
+                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11px] sm:mt-3 sm:px-4 sm:py-2 sm:text-xs font-bold text-navy-900 transition group-hover:bg-gold-300">
                   {t.cta} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                 </span>
               </div>
@@ -319,11 +339,12 @@ export default function HomePage() {
         </div>
       ) : (
         <>
-          <TrendingCarousel products={trending} loading={loading} />
+          <TrendingGrid products={trending} loading={loading} />
           <PromoBanners products={products} />
           <div className="h-12" aria-hidden />
           <BestsellerTabs products={products} categories={categories} loading={loading} />
           <PowerToolsBanner products={products} />
+          <ProductFeed products={products} loading={loading} />
         </>
       )}
 

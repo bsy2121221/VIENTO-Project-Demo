@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { PackageSearch, Search, X } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
+import InfiniteProductGrid, { PRODUCT_GRID } from '@/components/product/InfiniteProductGrid'
 import { Breadcrumbs, EmptyState, ErrorState, SkeletonCard } from '@/components/ui'
 import { useCatalog } from '@/context/StoreContext'
 import { CategoryChip } from '@/components/marketplace'
@@ -149,7 +150,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Category chips */}
-        <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap" role="group" aria-label="Quick category filter">
+        <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Quick category filter">
           <button
             type="button"
             onClick={() => update('category', 'all')}
@@ -176,8 +177,8 @@ export default function ProductsPage() {
           {error ? (
             <ErrorState message={error} onRetry={reload} />
           ) : loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 8 }, (_, i) => (
+            <div className={PRODUCT_GRID}>
+              {Array.from({ length: 10 }, (_, i) => (
                 <SkeletonCard key={i} />
               ))}
             </div>
@@ -195,11 +196,7 @@ export default function ProductsPage() {
               />
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {results.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
+            <InfiniteProductGrid products={results} resetKey={`${search}|${category}|${sellerFilter}|${sort}|${inStockOnly}`} render={(p) => <ProductCard key={p.id} product={p} />} />
           )}
         </div>
       </div>
